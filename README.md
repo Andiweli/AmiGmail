@@ -1,4 +1,4 @@
-# AmiGmail
+# ![Logo](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-icon.jpg) AmiGmail
 
 **A native Gmail client for AmigaOS 3.2+ — built with ReAction, IMAP, SMTP and AmiSSL.**
 
@@ -14,6 +14,8 @@
 AmiGmail is a lightweight native **Gmail email client for AmigaOS**. It provides a classic ReAction interface while connecting directly to Gmail through **IMAP and SMTP over AmiSSL/TLS**.
 
 The goal is simple: modern Gmail access on a real Amiga, without turning the application into a web browser.
+
+![Screenshot version 1.1](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail.jpg)
 
 ## 📧 Features
 
