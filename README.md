@@ -7,6 +7,7 @@
 ![Gmail](https://img.shields.io/badge/Gmail-IMAP%20%2F%20SMTP-red)
 ![ReAction](https://img.shields.io/badge/GUI-ReAction-green)
 ![AmiSSL](https://img.shields.io/badge/TLS-AmiSSL-lightgrey)
+![AI](https://img.shields.io/badge/AI-assisted%20coding-6e7781)
 
 ## 🌐 About
 
