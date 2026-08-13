@@ -22,6 +22,8 @@ The goal is simple: modern Gmail access on a real Amiga, without turning the app
 - Send, reply and save mail drafts
 - MIME messages and file attachments
 - IMAP message flags and Gmail folders/labels
+- **No local email cache:** messages are read live from Gmail via IMAP and are not stored by AmiGmail
+- The required Gmail **App Password is encrypted using a user-defined master password**
 - Periodic Inbox check every 5 minutes
 - Clickable URLs via OpenURL
 - Secure IMAP/SMTP connections through **AmiSSL**
