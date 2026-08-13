@@ -38,10 +38,10 @@ The goal is simple: modern Gmail access on a real Amiga, without turning the app
 3. Start `AmiGmail`.
 4. Open the account settings and configure your Gmail account.
 
+![Configuration of AmiGmail](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-config.jpg)
+
 ## 📧 Legal
 
-AmiGmail is an independent, non-commercial hobby project and is **not affiliated with, developed by, supported by or sponsored by Google LLC**.
+AmiGmail is an independent, non-commercial hobby project and is **not affiliated with, developed by, supported by or sponsored by Google LLC**. **Gmail** is a trademark of Google LLC. **Amiga** and **AmigaOS** are trademarks of their respective owners. AmiSSL and other third-party components remain subject to their respective licenses.
 
-**Gmail** is a trademark of Google LLC. **Amiga** and **AmigaOS** are trademarks of their respective owners. AmiSSL and other third-party components remain subject to their respective licenses.
-
-Copyright © Andreas "Andiweli" Stürmer.
+Copyright © Andreas 'Andiweli' Stürmer.
