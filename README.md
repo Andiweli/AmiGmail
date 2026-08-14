@@ -11,13 +11,9 @@
 
 ## 🌐 About
 
-AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It provides a classic ReAction interface while connecting directly to Gmail through **IMAP and SMTP over AmiSSL/TLS**.
+AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It provides a classic ReAction interface while connecting directly to Gmail through **IMAP and SMTP over AmiSSL/TLS**. It is not intended as a general-purpose IMAP client for other mail providers. Messages remain on Gmail and are accessed live through IMAP. AmiGmail does **not** maintain a local offline mail database.
 
-AmiGmail is designed specifically for **Gmail** and its mailbox/label structure. It is not intended as a general-purpose IMAP client for other mail providers.
-
-The goal is simple: modern Gmail access on a real Amiga, without turning the application into a web browser.
-
-Messages remain on Gmail and are accessed live through IMAP. AmiGmail does **not** maintain a local offline mail database.
+**The goal is simple:** modern Gmail access on a real Amiga, without turning the application into a web browser.
 
 ![Screenshot version 1.2](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail.jpg)
 
@@ -58,8 +54,6 @@ Sensitive account information is protected with:
 - **AES-256-GCM** authenticated encryption
 - encrypted storage of the Gmail App Password
 
-The master password itself is not stored. After a computer restart, it must be entered again before AmiGmail can unlock the saved Gmail account.
-
 For Gmail authentication, an **App Password** is used instead of the normal Google account password. This requires two-step verification to be enabled for the Google account.
 
 ## 🌐 Installation
@@ -94,12 +88,12 @@ AmiGmail has been tested on accelerated Amiga systems including **PiStorm32 / CM
 
 ## 🌍 Languages
 
-AmiGmail currently supports:
+AmiGmail supports:
 
 - **German** when AmigaOS is configured for German
 - **English** on all other system language configurations
 
-Additional interface languages are currently not planned.
+Additional interface languages are not planned.
 
 ## ⚠️ Limitations
 
