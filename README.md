@@ -198,7 +198,7 @@ Weitere technische Details stehen in
 - der OAuth-Callback-Assistent fehlt; der aktuelle GUI-Pfad verwendet ein
   Gmail-App-Passwort
 - SMTP STARTTLS auf Port 587 ist noch nicht implementiert; Port 465 wird genutzt
-- nur Textantworten, keine Anlagen und keine HTML-Komposition
+- nur Textantworten mit Anlagen, keine HTML-Komposition
 - kein Offline-Cache und keine Volltextsuche
 - einfache MIME-Auswahl statt vollständig verschachteltem MIME-Baum
 
