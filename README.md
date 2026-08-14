@@ -37,7 +37,7 @@ AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It pro
 - Send attachments up to **10 MB**
 - Save attachments from received messages
 - Sort messages by sender, subject, date or message size
-- Clickable URLs via OpenURL
+- Clickable URLs via OpenURL or IBrowse `mailto:%h`
 - MIME, Base64, Quoted-Printable and RFC 2047 handling
 - Gmail IMAP extensions and label handling
 - Secure IMAP/SMTP connections through **AmiSSL**
