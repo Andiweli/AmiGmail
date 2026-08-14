@@ -1,4 +1,4 @@
-# AmiGmail 1.2
+# ![Logo](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-icon.jpg) AmiGmail 1.2
 
 AmiGmail ist ein quelloffener Entwurf für einen Gmail-Client auf AmigaOS 3.2
 (68k) mit ReAction, IMAP, SMTP und AmiSSL. Das Repository enthält die
@@ -30,9 +30,15 @@ er sollte vor produktiver Nutzung mit dem eigenen Gmail-Konto getestet werden.
 
 Das ReAction-Hauptfenster ist in drei Arbeitsbereiche gegliedert:
 
+Das ReAction-Hauptfenster ist in drei Arbeitsbereiche gegliedert:
+
 1. links: Gmail-Systemordner und darunter die eigenen Labels als Ordnerbaum,
 2. rechts oben: Nachrichtenliste mit Absender, Betreff, Datum und Größe,
 3. rechts unten: Nur-Lese-Vorschau; das Öffnen markiert die Mail als gelesen.
+
+![Screenshot version 1.1](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail.jpg)
+
+## 📧 Features
 
 Darüber liegen die Aktionen **Neue Mail**, **Abrufen**, **Antworten**
 (im Ordner **Entwürfe**: **Bearbeiten/Edit**), **Löschen**, **Verschieben** und
@@ -43,6 +49,8 @@ Die Oberfläche ist zweisprachig. Ist AmigaOS auf **Deutsch** eingestellt,
 verwendet AmiGmail die deutsche Oberfläche. Bei jeder anderen Systemsprache
 wird **Englisch** verwendet. Die Auswahl erfolgt beim Programmstart über die
 AmigaOS-Systemvariable `LanguageName`.
+
+## Voraussetzungen
 
 ## Voraussetzungen
 
@@ -202,3 +210,11 @@ Weitere technische Details stehen in
 - [Gmail: IMAP-Erweiterungen und Labels](https://developers.google.com/workspace/gmail/imap/imap-extensions)
 - [Google OAuth 2.0 für installierte Anwendungen](https://developers.google.com/identity/protocols/oauth2/native-app)
 - [AmiSSL-Projekt und SDK-Hinweise](https://github.com/jens-maus/amissl)
+
+![Configuration of AmiGmail](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-config.jpg)
+
+## 📧 Legal
+
+AmiGmail is an independent, non-commercial hobby project and is **not affiliated with, developed by, supported by or sponsored by Google LLC**. **Gmail** is a trademark of Google LLC. **Amiga** and **AmigaOS** are trademarks of their respective owners. AmiSSL and other third-party components remain subject to their respective licenses.
+
+Copyright © Andreas 'Andiweli' Stürmer.
