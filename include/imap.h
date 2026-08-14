@@ -61,5 +61,11 @@ int amg_imap_empty_mailbox(AmgImapSession *session, const char *mailbox_utf8,
 int amg_imap_append_draft(AmgImapSession *session, const char *mailbox_utf8,
                           const unsigned char *message, size_t length,
                           AmgError *error);
+int amg_imap_delete_uid(AmgImapSession *session, const char *mailbox_utf8,
+                        unsigned long uid, AmgError *error);
+int amg_imap_replace_draft(AmgImapSession *session, const char *mailbox_utf8,
+                           unsigned long old_uid,
+                           const unsigned char *message, size_t length,
+                           AmgError *error);
 
 #endif

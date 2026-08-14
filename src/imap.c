@@ -1032,6 +1032,61 @@ int amg_imap_append_draft(AmgImapSession *session, const char *mailbox_utf8,
     return imap_collect(session, tag, NULL, error);
 }
 
+int amg_imap_delete_uid(AmgImapSession *session, const char *mailbox_utf8,
+                        unsigned long uid, AmgError *error)
+{
+    const char *mailbox;
+    char command[128];
+    int result;
+    if (!session || !uid || !mailbox_utf8 || !*mailbox_utf8)
+        return AMG_ERR_ARGUMENT;
+    mailbox = resolve_special_mailbox(session, mailbox_utf8);
+    if (!mailbox || !*mailbox) return AMG_ERR_ARGUMENT;
+    if (!ascii_ci_equal(session->selected_mailbox, mailbox)) {
+        result = amg_imap_select(session, mailbox, error);
+        if (result != AMG_OK) return result;
+    }
+    snprintf(command, sizeof(command),
+             "UID STORE %lu +FLAGS.SILENT (\\Deleted)", uid);
+    result = imap_command(session, command, NULL, error);
+    if (result != AMG_OK) return result;
+    if (session->capability_uidplus) {
+        snprintf(command, sizeof(command), "UID EXPUNGE %lu", uid);
+        result = imap_command(session, command, NULL, error);
+    } else {
+        result = imap_command(session, "EXPUNGE", NULL, error);
+    }
+    if (result == AMG_OK && session->selected_exists)
+        --session->selected_exists;
+    return result;
+}
+
+int amg_imap_replace_draft(AmgImapSession *session, const char *mailbox_utf8,
+                           unsigned long old_uid,
+                           const unsigned char *message, size_t length,
+                           AmgError *error)
+{
+    const char *mailbox;
+    int selected_same;
+    int result;
+    if (!session || !old_uid || !mailbox_utf8 || !*mailbox_utf8 ||
+        (!message && length))
+        return AMG_ERR_ARGUMENT;
+
+    mailbox = resolve_special_mailbox(session, mailbox_utf8);
+    selected_same = mailbox && *mailbox &&
+        ascii_ci_equal(session->selected_mailbox, mailbox);
+
+    /* Never destroy the old draft first. APPEND the edited version, and only
+     * after Gmail has accepted it remove the old UID. A failed APPEND therefore
+     * leaves the original draft untouched. */
+    result = amg_imap_append_draft(session, mailbox_utf8, message, length,
+                                   error);
+    if (result != AMG_OK) return result;
+    if (selected_same) ++session->selected_exists;
+    return amg_imap_delete_uid(session, mailbox_utf8, old_uid, error);
+}
+
 int amg_imap_empty_mailbox(AmgImapSession *session, const char *mailbox_utf8,
                            AmgError *error)
 {

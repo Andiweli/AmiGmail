@@ -4,9 +4,9 @@
 /* Kept as a real binary string on purpose so it is easy to find in a
  * hex editor or text scan of the executable. main.o is linked first. */
 static const char client_identification[] __attribute__((used)) =
-    "AmiGmail Client 1.1 by Andreas 'Andiweli' St\374rmer";
+    "AmiGmail Client 1.2 by Andreas 'Andiweli' St\374rmer";
 static const char version[] __attribute__((used)) =
-    "$VER: AmiGmail 1.1 (13.08.2026)";
+    "$VER: AmiGmail 1.2 (14.08.2026)";
 
 int main(int argc, char **argv)
 {

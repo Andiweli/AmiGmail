@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.2 – 2026-08-14
+
+- Programmversion auf 1.2 aktualisiert
+- Return/Enter bestätigt die eigenen ReAction-Requester; Escape bricht sie ab
+- Im Ordner Entwürfe wird Antworten zu Bearbeiten/Edit
+- bestehende Gmail-Entwürfe lassen sich mit Empfängern, CC/BCC, Betreff, Text und Anlagen weiterbearbeiten
+- erneutes Speichern eines bearbeiteten Entwurfs ersetzt serverseitig den alten Draft; bei fehlgeschlagenem APPEND bleibt der alte Draft erhalten
+- Senden eines bearbeiteten Entwurfs entfernt den alten Draft erst nach erfolgreichem SMTP-Versand
+
 ## 1.1 – 2026-08-13
 
 - Programmversion auf 1.1 aktualisiert

@@ -104,6 +104,8 @@ static const char *network_operation(AmgNetCommandType type)
             return T("Spam leeren", "empty Spam");
         case AMG_NET_SAVE_DRAFT:
             return T("Entwurf speichern", "save draft");
+        case AMG_NET_SEND_DRAFT:
+            return T("Entwurf senden", "send draft");
         case AMG_NET_SEND_REPLY:
             return T("Antwort senden", "send reply");
         case AMG_NET_SEND_MAIL:
@@ -195,10 +197,16 @@ static int save_mail_draft(AmgNetwork *network, AmgImapSession *imap,
 
     amg_buffer_init(&raw);
     result = amg_smtp_build_mail(&draft, 1, &raw, error);
-    if (result == AMG_OK)
-        result = amg_imap_append_draft(
-            imap, message->argument1[0] ? message->argument1 : "\\Drafts",
-            raw.data, raw.length, error);
+    if (result == AMG_OK) {
+        const char *mailbox =
+            message->argument1[0] ? message->argument1 : "\\Drafts";
+        if (message->uid)
+            result = amg_imap_replace_draft(
+                imap, mailbox, message->uid, raw.data, raw.length, error);
+        else
+            result = amg_imap_append_draft(
+                imap, mailbox, raw.data, raw.length, error);
+    }
     amg_buffer_free(&raw);
     return result;
 }
@@ -385,6 +393,22 @@ static void network_worker(void)
                     result = save_mail_draft(network, &imap, message, &error);
                     break;
 
+                case AMG_NET_SEND_DRAFT:
+                    if (!network->connected) {
+                        result = AMG_ERR_IO;
+                        amg_error_set(
+                            &error, result,
+                            T("IMAP-Verbindung f\303\274r den Entwurf fehlt.",
+                              "IMAP connection for the draft is unavailable."));
+                        break;
+                    }
+                    result = send_new_mail(network, message,
+                                           tokens.access_token, &error);
+                    if (result == AMG_OK)
+                        result = amg_imap_delete_uid(
+                            &imap, message->argument1, message->uid, &error);
+                    break;
+
                 case AMG_NET_SEND_REPLY:
                 {
                     AmgReplyDraft draft = {
@@ -416,7 +440,7 @@ static void network_worker(void)
             }
             if ((result == AMG_ERR_IO || result == AMG_ERR_TLS) &&
                 message->type >= AMG_NET_CONNECT &&
-                message->type <= AMG_NET_SAVE_DRAFT)
+                message->type <= AMG_NET_SEND_DRAFT)
                 network->connected = 0;
             qualify_error(message->type, result, &error);
             finish_message(message, result, &error);
@@ -563,7 +587,7 @@ int amg_network_request_reply(AmgNetwork *network, const AmgReplyDraft *draft,
 static int request_mail_message(AmgNetwork *network,
                                 const AmgMailDraft *draft,
                                 AmgNetCommandType type,
-                                const char *mailbox,
+                                const char *mailbox, unsigned long uid,
                                 AmgError *error)
 {
     AmgNetMessage *message;
@@ -622,6 +646,7 @@ static int request_mail_message(AmgNetwork *network,
         message->attachments[i].size = draft->attachments[i].size;
     }
     copy_text(message->argument1, sizeof(message->argument1), mailbox);
+    message->uid = uid;
     PutMsg(network->commands, (struct Message *)message);
     return AMG_OK;
 }
@@ -629,7 +654,8 @@ static int request_mail_message(AmgNetwork *network,
 int amg_network_request_mail(AmgNetwork *network, const AmgMailDraft *draft,
                              AmgError *error)
 {
-    return request_mail_message(network, draft, AMG_NET_SEND_MAIL, NULL, error);
+    return request_mail_message(network, draft, AMG_NET_SEND_MAIL, NULL, 0UL,
+                                error);
 }
 
 int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
@@ -642,7 +668,38 @@ int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
         return AMG_ERR_ARGUMENT;
     }
     return request_mail_message(network, draft, AMG_NET_SAVE_DRAFT,
-                                draft_mailbox, error);
+                                draft_mailbox, 0UL, error);
+}
+
+int amg_network_request_draft_replace(AmgNetwork *network,
+                                      const AmgMailDraft *draft,
+                                      const char *draft_mailbox,
+                                      unsigned long old_uid, AmgError *error)
+{
+    if (!old_uid || !draft_mailbox || !*draft_mailbox) {
+        amg_error_set(error, AMG_ERR_ARGUMENT,
+                      T("Der zu ersetzende Entwurf ist nicht bekannt.",
+                        "The draft to replace is unknown."));
+        return AMG_ERR_ARGUMENT;
+    }
+    return request_mail_message(network, draft, AMG_NET_SAVE_DRAFT,
+                                draft_mailbox, old_uid, error);
+}
+
+int amg_network_request_mail_from_draft(AmgNetwork *network,
+                                        const AmgMailDraft *draft,
+                                        const char *draft_mailbox,
+                                        unsigned long old_uid,
+                                        AmgError *error)
+{
+    if (!old_uid || !draft_mailbox || !*draft_mailbox) {
+        amg_error_set(error, AMG_ERR_ARGUMENT,
+                      T("Der zu sendende Entwurf ist nicht bekannt.",
+                        "The draft to send is unknown."));
+        return AMG_ERR_ARGUMENT;
+    }
+    return request_mail_message(network, draft, AMG_NET_SEND_DRAFT,
+                                draft_mailbox, old_uid, error);
 }
 
 int amg_network_poll(AmgNetwork *network, AmgNetworkEvent *event)
@@ -799,6 +856,33 @@ int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
     (void)network;
     (void)draft;
     (void)draft_mailbox;
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    return AMG_ERR_UNSUPPORTED;
+}
+
+int amg_network_request_draft_replace(AmgNetwork *network,
+                                      const AmgMailDraft *draft,
+                                      const char *draft_mailbox,
+                                      unsigned long old_uid, AmgError *error)
+{
+    (void)network;
+    (void)draft;
+    (void)draft_mailbox;
+    (void)old_uid;
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    return AMG_ERR_UNSUPPORTED;
+}
+
+int amg_network_request_mail_from_draft(AmgNetwork *network,
+                                        const AmgMailDraft *draft,
+                                        const char *draft_mailbox,
+                                        unsigned long old_uid,
+                                        AmgError *error)
+{
+    (void)network;
+    (void)draft;
+    (void)draft_mailbox;
+    (void)old_uid;
     amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }

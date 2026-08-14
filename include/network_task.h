@@ -18,6 +18,7 @@ typedef enum AmgNetCommandType {
     AMG_NET_EMPTY_TRASH,
     AMG_NET_EMPTY_SPAM,
     AMG_NET_SAVE_DRAFT,
+    AMG_NET_SEND_DRAFT,
     AMG_NET_SEND_REPLY,
     AMG_NET_SEND_MAIL
 } AmgNetCommandType;
@@ -51,6 +52,15 @@ int amg_network_request_mail(AmgNetwork *network, const AmgMailDraft *draft,
                              AmgError *error);
 int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
                               const char *draft_mailbox, AmgError *error);
+int amg_network_request_draft_replace(AmgNetwork *network,
+                                      const AmgMailDraft *draft,
+                                      const char *draft_mailbox,
+                                      unsigned long old_uid, AmgError *error);
+int amg_network_request_mail_from_draft(AmgNetwork *network,
+                                        const AmgMailDraft *draft,
+                                        const char *draft_mailbox,
+                                        unsigned long old_uid,
+                                        AmgError *error);
 int amg_network_poll(AmgNetwork *network, AmgNetworkEvent *event);
 void amg_network_event_clear(AmgNetworkEvent *event);
 
