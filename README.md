@@ -52,8 +52,6 @@ AmigaOS-Systemvariable `LanguageName`.
 
 ## Voraussetzungen
 
-## Voraussetzungen
-
 Zielsystem:
 
 - AmigaOS 3.2 auf 68020 oder neuer
