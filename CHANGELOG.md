@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.3 – 2026-08-14
+
+- Programmversion auf 1.3 aktualisiert
+- `mailto:`-Integration für Browser/andere Programme; Empfänger, CC/BCC, Betreff und Nachrichtentext können vorbelegt werden
+- bereits laufendes AmiGmail übernimmt `mailto:`-Aufrufe über einen eigenen Exec-Port, ohne eine zweite IMAP-/SMTP-Sitzung zu starten
+- IBrowse-Mailto-Aufrufe blockieren den Browser nicht; das Fenster „Neue Mail“ wird zuverlässig in den Vordergrund gebracht
+- Escape bricht die Ordnerauswahl beim Verschieben einer Mail ab
+- URL-Doppelklick in der Mailvorschau öffnet OpenURL außerhalb des TextEditor-Hooks und blockiert ReAction nicht
+- Bestätigungsfenster für „Papierkorb leeren“ und „Spam leeren“ werden direkt mittig geöffnet
+- große `gui.c` in klar getrennte Module für Ordner, Nachrichten, Vorschau, Fensteraufbau, Aktionen und Runtime/Eventloop zerlegt
+- konservativer Compiler-Warning-Cleanup für Hook-/Tag-Pointer, Sprachvariable, Timer-Gerätename und Baumkoordinaten
+
 ## 1.2 – 2026-08-14
 
 - Programmversion auf 1.2 aktualisiert
@@ -8,6 +20,8 @@
 - bestehende Gmail-Entwürfe lassen sich mit Empfängern, CC/BCC, Betreff, Text und Anlagen weiterbearbeiten
 - erneutes Speichern eines bearbeiteten Entwurfs ersetzt serverseitig den alten Draft; bei fehlgeschlagenem APPEND bleibt der alte Draft erhalten
 - Senden eines bearbeiteten Entwurfs entfernt den alten Draft erst nach erfolgreichem SMTP-Versand
+- Im Ordner Gesendet zeigt die zweite Datenspalte Empfänger/Recipient und verwendet To (mit Cc/Bcc-Fallback) statt des eigenen Absenders
+- Multipart-Entwürfe mit Anlage und leerem Nachrichtentext werden korrekt als gültiger leerer Textteil erkannt und lassen sich wieder bearbeiten
 
 ## 1.1 – 2026-08-13
 

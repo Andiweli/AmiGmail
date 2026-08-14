@@ -99,7 +99,7 @@ static int open_socket(const char *host, unsigned short port, unsigned long time
     struct sockaddr_in address;
     struct timeval tv;
     int fd;
-    entry = gethostbyname((char *)host);
+    entry = gethostbyname((STRPTR)host);
     if (!entry || !entry->h_addr_list || !entry->h_addr_list[0]) {
         char message[256];
         amg_tr_snprintf(message, sizeof(message),

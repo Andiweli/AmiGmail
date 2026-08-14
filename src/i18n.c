@@ -58,9 +58,9 @@ static int read_language_var(const char *name, char *buffer, size_t capacity)
     LONG length;
     if (!name || !buffer || capacity == 0U) return 0;
 
-    length = GetVar((CONST_STRPTR)name, buffer, (LONG)capacity, 0L);
+    length = GetVar((CONST_STRPTR)name, (STRPTR)buffer, (LONG)capacity, 0L);
     if (length <= 0)
-        length = GetVar((CONST_STRPTR)name, buffer, (LONG)capacity,
+        length = GetVar((CONST_STRPTR)name, (STRPTR)buffer, (LONG)capacity,
                         GVF_GLOBAL_ONLY);
     if (length <= 0) return 0;
 

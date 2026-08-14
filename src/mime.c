@@ -433,6 +433,7 @@ static int extract_entity(const char *message, size_t length, unsigned depth, Am
     if (!content_type) content_type = "text/plain";
     if (ci_equal_n(content_type, "multipart/", 10U) && param_value(content_type, "boundary", boundary, sizeof(boundary))) {
         AmgBuffer marker; const char *body = message + body_offset, *end = message + length, *part;
+        int found_text_part = 0;
         amg_buffer_init(&marker); amg_buffer_append_cstr(&marker, "--"); amg_buffer_append_cstr(&marker, boundary); amg_buffer_terminate(&marker);
         part = strstr(body, (const char *)marker.data);
         while (part && part < end) {
@@ -444,13 +445,17 @@ static int extract_entity(const char *message, size_t length, unsigned depth, Am
             if (!next) break;
             {
                 const char *part_end = next;
+                size_t previous_length = output->length;
                 while (part_end > start && (part_end[-1] == '\r' || part_end[-1] == '\n')) --part_end;
                 result = extract_entity(start, (size_t)(part_end - start), depth + 1U, output);
-                if (result == AMG_OK && output->length) { amg_buffer_free(&marker); amg_mail_headers_free(&headers); return AMG_OK; }
+                if (result == AMG_OK) {
+                    found_text_part = 1;
+                    if (output->length > previous_length) { amg_buffer_free(&marker); amg_mail_headers_free(&headers); return AMG_OK; }
+                }
             }
             part = next;
         }
-        amg_buffer_free(&marker); amg_mail_headers_free(&headers); return AMG_ERR_PARSE;
+        amg_buffer_free(&marker); amg_mail_headers_free(&headers); return found_text_part ? AMG_OK : AMG_ERR_PARSE;
     } else {
         AmgBuffer decoded;
         const char *body = message + body_offset;

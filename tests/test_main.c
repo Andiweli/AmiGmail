@@ -4,6 +4,7 @@
 #include "imap_parser.h"
 #include "i18n.h"
 #include "mime.h"
+#include "mailto.h"
 #include "oauth.h"
 #include "smtp.h"
 #include "storage.h"
@@ -209,21 +210,155 @@ static void test_mime(void)
 {
     const char *message="Content-Type: multipart/alternative; boundary=abc\r\n\r\n--abc\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\nHallo=20Welt\r\n--abc\r\nContent-Type: text/html\r\n\r\n<b>Hallo</b>\r\n--abc--\r\n";
     const char *with_attachment="Content-Type: multipart/mixed; boundary=mix\r\n\r\n--mix\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nHallo\r\n--mix\r\nContent-Type: application/pdf; name=\"rechnung.pdf\"\r\nContent-Disposition: attachment; filename=\"rechnung.pdf\"\r\nContent-Transfer-Encoding: base64\r\n\r\nQUJD\r\n--mix--\r\n";
+    const char *empty_with_attachment="Content-Type: multipart/mixed; boundary=mix\r\n\r\n--mix\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n\r\n--mix\r\nContent-Type: application/octet-stream; name=\"leer.txt\"\r\nContent-Disposition: attachment; filename=\"leer.txt\"\r\nContent-Transfer-Encoding: base64\r\n\r\nQUJD\r\n--mix--\r\n";
     AmgBuffer output,name,data;AmgError error;size_t attachment_count=0;amg_buffer_init(&output);CHECK(amg_mime_extract_text(message,strlen(message),&output,&error)==AMG_OK);CHECK(strstr(text(&output),"Hallo Welt")!=NULL);amg_buffer_free(&output);
+    amg_buffer_init(&output);CHECK(amg_mime_extract_text(empty_with_attachment,strlen(empty_with_attachment),&output,&error)==AMG_OK);CHECK(output.length==0U);amg_buffer_free(&output);
     amg_buffer_init(&output);CHECK(amg_mime_attachment_summary(with_attachment,strlen(with_attachment),&output,&error)==AMG_OK);CHECK(strstr(text(&output),"rechnung.pdf")!=NULL);CHECK(strstr(text(&output),"application/pdf")!=NULL);amg_buffer_free(&output);
     CHECK(amg_mime_attachment_count(with_attachment,strlen(with_attachment),&attachment_count,&error)==AMG_OK);CHECK(attachment_count==1U);
     amg_buffer_init(&name);amg_buffer_init(&data);CHECK(amg_mime_extract_attachment(with_attachment,strlen(with_attachment),0U,&name,&data,&error)==AMG_OK);CHECK(!strcmp(text(&name),"rechnung.pdf"));CHECK(data.length==3U&&!memcmp(data.data,"ABC",3U));amg_buffer_free(&name);amg_buffer_free(&data);
     amg_buffer_init(&output);CHECK(amg_html_to_text("<p>A &amp; B</p><script>evil()</script><br>C",47U,&output)==AMG_OK);CHECK(strstr(text(&output),"evil")==NULL);CHECK(strstr((char*)output.data,"A & B")!=NULL);amg_buffer_free(&output);
 }
 
+
+static void test_mailto(void)
+{
+    AmgMailtoRequest request;
+    AmgError error;
+    char *argv1[] = {
+        (char *)"AmiGmail",
+        (char *)"IGNORED",
+        (char *)"mailto:found@example.com?subject=Found"
+    };
+
+    memset(&error, 0, sizeof(error));
+    amg_mailto_request_init(&request);
+    CHECK(amg_mailto_parse(
+        "mailto:max@example.com?subject=Hallo%20Welt&body=Zeile%201%0D%0AZeile%202",
+        &request, &error) == AMG_OK);
+    CHECK(request.to_utf8 && !strcmp(request.to_utf8, "max@example.com"));
+    CHECK(request.subject_utf8 && !strcmp(request.subject_utf8, "Hallo Welt"));
+    CHECK(request.body_utf8 && !strcmp(request.body_utf8, "Zeile 1\r\nZeile 2"));
+    amg_mailto_request_clear(&request);
+
+    amg_mailto_request_init(&request);
+    CHECK(amg_mailto_parse(
+        "MAILTO:first@example.com?to=second@example.com&cc=copy%40example.com&bcc=blind%40example.com&subject=Gr%C3%BC%C3%9Fe",
+        &request, &error) == AMG_OK);
+    CHECK(request.to_utf8 &&
+          !strcmp(request.to_utf8, "first@example.com, second@example.com"));
+    CHECK(request.cc_utf8 && !strcmp(request.cc_utf8, "copy@example.com"));
+    CHECK(request.bcc_utf8 && !strcmp(request.bcc_utf8, "blind@example.com"));
+    CHECK(request.subject_utf8 && !strcmp(request.subject_utf8, "Grüße"));
+    amg_mailto_request_clear(&request);
+
+    amg_mailto_request_init(&request);
+    CHECK(amg_mailto_parse(
+        "mailto:test+tag@example.com?subject=A+B&subject=ignored&body=x%26y",
+        &request, &error) == AMG_OK);
+    CHECK(request.to_utf8 && !strcmp(request.to_utf8, "test+tag@example.com"));
+    CHECK(request.subject_utf8 && !strcmp(request.subject_utf8, "A+B"));
+    CHECK(request.body_utf8 && !strcmp(request.body_utf8, "x&y"));
+    amg_mailto_request_clear(&request);
+
+    amg_mailto_request_init(&request);
+    CHECK(amg_mailto_parse(
+        "mailto:user@example.com?subject=Hello%0D%0ABcc%3Aevil%40example.com",
+        &request, &error) == AMG_OK);
+    CHECK(request.subject_utf8 &&
+          !strcmp(request.subject_utf8, "Hello  Bcc:evil@example.com"));
+    amg_mailto_request_clear(&request);
+
+    amg_mailto_request_init(&request);
+    CHECK(amg_mailto_parse("mailto:test@example.com?subject=%ZZ",
+                           &request, &error) == AMG_ERR_PARSE);
+    CHECK(amg_mailto_parse("mailto:test@example.com?body=%00",
+                           &request, &error) == AMG_ERR_PARSE);
+    CHECK(amg_mailto_parse("https://example.com", &request, &error) ==
+          AMG_ERR_ARGUMENT);
+    amg_mailto_request_clear(&request);
+
+    CHECK(amg_mailto_find_argument(3, argv1) == argv1[2]);
+    CHECK(amg_mailto_find_argument(1, argv1) == NULL);
+    {
+        char *argv0_mailto[] = {
+            (char *)"mailto:ibrowse@example.com?subject=IBrowse"
+        };
+        CHECK(amg_mailto_find_argument(1, argv0_mailto) == argv0_mailto[0]);
+    }
+    {
+        char *url;
+        int detached = 0;
+        memset(&error, 0, sizeof(error));
+        url = amg_mailto_startup_url(0, NULL,
+            "mailto:raw@example.com\n", &detached, &error);
+        CHECK(url != NULL && !strcmp(url, "mailto:raw@example.com"));
+        CHECK(detached == 0);
+        free(url);
+    }
+    {
+        char *url;
+        int detached = 0;
+        memset(&error, 0, sizeof(error));
+        url = amg_mailto_startup_url(0, NULL,
+            "\"mailto:quoted@example.com?subject=Hello World\"\n",
+            &detached, &error);
+        CHECK(url != NULL &&
+              !strcmp(url, "mailto:quoted@example.com?subject=Hello World"));
+        CHECK(detached == 0);
+        free(url);
+    }
+    {
+        char *wrapped_argv[] = {
+            (char *)"AmiGmail",
+            (char *)"URL=mailto:wrapped@example.com"
+        };
+        const char *found = amg_mailto_find_argument(2, wrapped_argv);
+        CHECK(found != NULL && !strcmp(found, "mailto:wrapped@example.com"));
+    }
+    {
+        const char *path = "build/AmiGmailMailto.test";
+        char option[256];
+        char *file_argv[2];
+        char *url;
+        int detached = 0;
+        FILE *file = fopen(path, "wb");
+        CHECK(file != NULL);
+        if (file) {
+            CHECK(fputs("mailto:file@example.com?subject=Detached\n", file) >= 0);
+            CHECK(fclose(file) == 0);
+        }
+        snprintf(option, sizeof(option), "--amg-mailto-file=%s", path);
+        file_argv[0] = (char *)"AmiGmail";
+        file_argv[1] = option;
+        memset(&error, 0, sizeof(error));
+        url = amg_mailto_startup_url(2, file_argv, NULL,
+                                     &detached, &error);
+        CHECK(url != NULL &&
+              !strcmp(url, "mailto:file@example.com?subject=Detached"));
+        CHECK(detached == 1);
+        CHECK(fopen(path, "rb") == NULL);
+        free(url);
+    }
+}
+
 static void test_smtp(void)
 {
-    AmgBuffer output,subject;AmgReplyDraft draft;AmgError error;memset(&draft,0,sizeof(draft));amg_buffer_init(&output);amg_buffer_init(&subject);
+    AmgBuffer output,subject,body;AmgReplyDraft draft;AmgMailDraft mail;AmgAttachmentInput attachment;AmgError error;size_t attachment_count=0;FILE *file;memset(&draft,0,sizeof(draft));amg_buffer_init(&output);amg_buffer_init(&subject);
     CHECK(amg_smtp_dot_stuff("a\r\n.b\r\n..c\r\n",14U,&output)==AMG_OK);CHECK(!strcmp(text(&output),"a\r\n..b\r\n...c\r\n"));amg_buffer_free(&output);
     CHECK(amg_smtp_reply_subject("Re: Test",&subject)==AMG_OK);CHECK(!strcmp(text(&subject),"Re: Test"));amg_buffer_free(&subject);
     draft.from="me@gmail.com";draft.to="you@example.com";draft.subject="Test";draft.body_utf8="Hallo\n.Zeile";draft.in_reply_to="<old@example>";draft.references="<first@example> <old@example>";
     draft.date_rfc2822="Wed, 12 Aug 2026 10:00:00 +0200";draft.message_id="<new@gmail.com>";amg_buffer_init(&output);
     CHECK(amg_smtp_build_reply(&draft,&output,&error)==AMG_OK);CHECK(strstr(text(&output),"Subject: Re: Test\r\n")!=NULL);CHECK(strstr((char*)output.data,"\r\n..Zeile")!=NULL);amg_buffer_free(&output);
+
+    file=fopen("build/test-empty-body-attachment.bin","wb");CHECK(file!=NULL);
+    if(file){CHECK(fwrite("ABC",1U,3U,file)==3U);CHECK(fclose(file)==0);}
+    memset(&mail,0,sizeof(mail));memset(&attachment,0,sizeof(attachment));
+    attachment.path="build/test-empty-body-attachment.bin";attachment.name_utf8="test.bin";attachment.size=3U;
+    mail.from="me@gmail.com";mail.to="you@example.com";mail.subject="Empty body";mail.body_utf8="";mail.date_rfc2822="Wed, 12 Aug 2026 10:00:00 +0200";mail.message_id="<empty@gmail.com>";mail.attachments=&attachment;mail.attachment_count=1U;
+    amg_buffer_init(&output);CHECK(amg_smtp_build_mail(&mail,1,&output,&error)==AMG_OK);
+    amg_buffer_init(&body);CHECK(amg_mime_extract_text((const char*)output.data,output.length,&body,&error)==AMG_OK);CHECK(body.length==0U);amg_buffer_free(&body);
+    CHECK(amg_mime_attachment_count((const char*)output.data,output.length,&attachment_count,&error)==AMG_OK);CHECK(attachment_count==1U);
+    amg_buffer_free(&output);remove("build/test-empty-body-attachment.bin");
 }
 
 static void test_oauth(void)
@@ -261,6 +396,6 @@ static void test_i18n(void)
 
 int main(void)
 {
-    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_i18n();
+    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_mailto();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_i18n();
     printf("%u checks, %u failures\n",tests_run,tests_failed);return tests_failed?1:0;
 }
