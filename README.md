@@ -1,215 +1,120 @@
-# ![Logo](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-icon.jpg) AmiGmail 1.2
+# ![Logo](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-icon.jpg) AmiGmail
 
-AmiGmail ist ein quelloffener Entwurf für einen Gmail-Client auf AmigaOS 3.2
-(68k) mit ReAction, IMAP, SMTP und AmiSSL. Das Repository enthält die
-Protokollschicht, MIME-/Codec-Bausteine, einen getrennten Netzwerkprozess und
-ein dreigeteiltes Workbench-Fenster. Der aktuelle Quellstand entspricht Version 1.2;
-er sollte vor produktiver Nutzung mit dem eigenen Gmail-Konto getestet werden.
+**A native Gmail client for AmigaOS 3.2+ — built with ReAction, IMAP, SMTP and AmiSSL.**
 
-## Enthaltener Funktionsumfang
+![Version](https://img.shields.io/badge/version-1.2-blue)
+![AmigaOS](https://img.shields.io/badge/AmigaOS-3.2%2B-orange)
+![Gmail](https://img.shields.io/badge/Gmail-IMAP%20%2F%20SMTP-red)
+![ReAction](https://img.shields.io/badge/GUI-ReAction-green)
+![AmiSSL](https://img.shields.io/badge/TLS-AmiSSL-lightgrey)
+![AI](https://img.shields.io/badge/AI-assisted%20coding-6e7781)
 
-- IMAP-Verbindung über implizites TLS auf `imap.gmail.com:993`
-- Anmeldung per XOAUTH2-Token oder App-Passwort über `AUTHENTICATE PLAIN`
-- Gmail-Labels über `LIST ... RETURN (SPECIAL-USE)`, mit `XLIST`-Fallback
-- Modified UTF-7 für IMAP-Mailboxnamen
-- datumsbegrenzter Header-Abruf per UID; Treffer werden in 100-UID-Paketen geladen
-- Gmail-Erweiterungen `X-GM-MSGID`, `X-GM-THRID` und `X-GM-LABELS`
-- Markieren als gelesen/ungelesen, Löschen und Labeloperationen per IMAP
-- Verfassen und Antworten per SMTP über direktes TLS auf `smtp.gmail.com:465`
-- vorhandene Gmail-Entwürfe im Ordner **Entwürfe** über **Bearbeiten/Edit** öffnen; erneutes Speichern ersetzt den bisherigen serverseitigen Entwurf
-- RFC-5322-kompatible CRLF-Zeilen, Dot-Stuffing, `In-Reply-To` und `References`
-- MIME-Header, RFC 2047, Base64, Quoted-Printable, `text/plain` und einfacher
-  HTML-zu-Text-Fallback
-- OAuth-2.0-Hilfsfunktionen für Authorization Code + PKCE und Token-Refresh
-- verschlüsselte Kontogeheimnisse mit PBKDF2-HMAC-SHA256 und AES-256-GCM
-- eigener Netzwerkprozess mit Exec Message Ports; keine blockierenden
-  Netzwerkzugriffe im GUI-Task
-- defensive Größenlimits, Eingabeprüfung und Nullsetzen sensibler Puffer
+## 🌐 About
 
-## Oberfläche
+AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It provides a classic ReAction interface while connecting directly to Gmail through **IMAP and SMTP over AmiSSL/TLS**.
 
-Das ReAction-Hauptfenster ist in drei Arbeitsbereiche gegliedert:
+AmiGmail is designed specifically for **Gmail** and its mailbox/label structure. It is not intended as a general-purpose IMAP client for other mail providers.
 
-Das ReAction-Hauptfenster ist in drei Arbeitsbereiche gegliedert:
+The goal is simple: modern Gmail access on a real Amiga, without turning the application into a web browser.
 
-1. links: Gmail-Systemordner und darunter die eigenen Labels als Ordnerbaum,
-2. rechts oben: Nachrichtenliste mit Absender, Betreff, Datum und Größe,
-3. rechts unten: Nur-Lese-Vorschau; das Öffnen markiert die Mail als gelesen.
+Messages remain on Gmail and are accessed live through IMAP. AmiGmail does **not** maintain a local offline mail database.
 
-![Screenshot version 1.1](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail.jpg)
+![Screenshot version 1.2](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail.jpg)
 
 ## 📧 Features
 
-Darüber liegen die Aktionen **Neue Mail**, **Abrufen**, **Antworten**
-(im Ordner **Entwürfe**: **Bearbeiten/Edit**), **Löschen**, **Verschieben** und
-**Un/Gelesen**; darunter befindet sich eine Statuszeile. Mit Umschalt/Shift lassen sich mehrere Mails für Lesestatus und
-Löschen markieren.
+- Native **AmigaOS 3.2+ / ReAction** interface
+- Single Gmail account
+- Gmail **Inbox, Sent, All Mail, Trash, Spam and Drafts**
+- Gmail labels displayed as an expandable folder tree
+- Nested labels can be expanded and collapsed; the folder view state is remembered
+- Optional automatic Inbox fetch when AmiGmail starts
+- Optional automatic Inbox check every 5 minutes
+- Compose new mail and reply to messages
+- Move messages between Gmail folders/labels and back to the Inbox
+- Delete messages and empty Gmail Trash
+- Mark messages as read or unread
+- Multi-selection for supported mail operations
+- Open, edit and save Gmail drafts
+- Sending an edited draft removes the old server-side draft only after successful delivery
+- MIME messages and file attachments
+- Send attachments up to **10 MB**
+- Save attachments from received messages
+- Sort messages by sender, subject, date or message size
+- Clickable URLs via OpenURL
+- MIME, Base64, Quoted-Printable and RFC 2047 handling
+- Gmail IMAP extensions and label handling
+- Secure IMAP/SMTP connections through **AmiSSL**
+- German UI on German AmigaOS systems, English fallback otherwise
+- **No local email cache:** messages are read directly from Gmail via IMAP
 
-Die Oberfläche ist zweisprachig. Ist AmigaOS auf **Deutsch** eingestellt,
-verwendet AmiGmail die deutsche Oberfläche. Bei jeder anderen Systemsprache
-wird **Englisch** verwendet. Die Auswahl erfolgt beim Programmstart über die
-AmigaOS-Systemvariable `LanguageName`.
+## 🔐 Account Security
 
-## Voraussetzungen
+AmiGmail stores the Gmail account data encrypted using a **mandatory user-defined master password**.
 
-Zielsystem:
+Sensitive account information is protected with:
 
-- AmigaOS 3.2 auf 68020 oder neuer
-- TCP/IP-Stack mit `bsdsocket.library` V4
-- AmiSSL v5 samt `AmiSSL:`-Assign und aktuellem CA-Bundle
-- ReAction-Klassen aus AmigaOS 3.2
-- korrekte Systemzeit für TLS-Zertifikatsprüfung
+- **PBKDF2-HMAC-SHA256** key derivation
+- **AES-256-GCM** authenticated encryption
+- encrypted storage of the Gmail App Password
 
-Build-Host:
+The master password itself is not stored. After a computer restart, it must be entered again before AmiGmail can unlock the saved Gmail account.
 
-- Windows mit MSYS2/MSYS oder ein POSIX-kompatibler Host
-- `make`, `zip` und ein m68k-AmigaOS-Crosscompiler (`m68k-amigaos-gcc`)
-- AmigaOS 3.2 NDK/ReAction-Includes
-- AmiSSL-v5-SDK für m68k
+For Gmail authentication, an **App Password** is used instead of the normal Google account password. This requires two-step verification to be enabled for the Google account.
 
-## MSYS-/AmigaGCC-Build
+## 🌐 Installation
 
-Das Makefile leitet `AMIGA_PREFIX` standardmäßig aus dem tatsächlich im `PATH`
-gefundenen `m68k-amigaos-gcc` ab. Liegt der Compiler beispielsweise unter
-`/c/amiga-gcc/bin/m68k-amigaos-gcc`, wird automatisch
-`/c/amiga-gcc/m68k-amigaos/ndk-include` als NDK-Pfad verwendet.
+1. Download the latest AmiGmail release and extract it to an Amiga drawer.
+2. Install **AmiSSL 5.x** and make sure the `AmiSSL:` assign and CA certificates are available.
+3. Make sure the Amiga has a working TCP/IP connection and the correct system date and time.
+4. Start `AmiGmail`.
+5. Open the account settings and configure your Gmail address and Gmail App Password.
+6. Enter a master password to encrypt the stored account data.
 
-Ein normaler Build ist daher zunächst einfach:
+AmiGmail uses Gmail through:
 
-```sh
-make clean
-make
+```text
+IMAP: imap.gmail.com:993
+SMTP: smtp.gmail.com
 ```
-
-Falls die SDKs an Sonderpfaden liegen, können alle Pfade weiterhin ohne
-Änderung am Makefile explizit gesetzt werden:
-
-```sh
-cd AmiGmail
-make check-env \
-  AMIGA_PREFIX=/c/amiga-gcc \
-  NDK_INC=/c/amiga-gcc/m68k-amigaos/ndk-include \
-  REACTION_SDK=/c/amiga-gcc/m68k-amigaos/ndk-include \
-  AMISSL_SDK=/c/amiga-sdk/AmiSSL/Developer
-
-make release \
-  CC=m68k-amigaos-gcc \
-  AMIGA_PREFIX=/c/amiga-gcc \
-  NDK_INC=/c/amiga-gcc/m68k-amigaos/ndk-include \
-  REACTION_SDK=/c/amiga-gcc/m68k-amigaos/ndk-include \
-  AMISSL_SDK=/c/amiga-sdk/AmiSSL/Developer
-```
-
-Das Ziel ist `bin/AmiGmail`. Die Voreinstellungen verwenden `-m68020` und
-`-msoft-float`. `src/tls.c` öffnet `bsdsocket.library`,
-`amisslmaster.library` und AmiSSL ausdrücklich. Deshalb wird
-`libamisslauto.a` absichtlich nicht zusätzlich gelinkt. Nur falls später
-AmiSSL-Funktionen als Funktionszeiger benötigt werden, kann je nach SDK
-`AMISSL_EXTRA_LIBS=-lamisslstubs` gesetzt werden.
-
-`AMISSL_SDK` zeigt auf das AmiSSL-`Developer`-Verzeichnis, das direkt
-`include/` und `lib/` enthält. Das Makefile erkennt zusätzlich automatisch den
-üblichen lokalen Pfad `~/dev/amiga/sdk/AmiSSL-5.27-SDK/AmiSSL/Developer`, wenn
-dort `include/proto/amissl.h` vorhanden ist. Ein explizit beim `make` gesetzter
-`AMISSL_SDK`-Wert hat immer Vorrang.
-
-Die tatsächliche Verzeichnisstruktur eines AmigaGCC-Pakets kann abweichen.
-Entscheidend sind die Verzeichnisse mit den NDK-/ReAction-Headern sowie
-`amissl/`, `openssl/` und den m68k-Linkbibliotheken des AmiSSL-SDKs.
-
-## Hosttests
-
-Die portablen Module lassen sich unabhängig vom Amiga-SDK prüfen:
-
-```sh
-make host-test
-make host-check
-```
-
-`host-test` testet Base64, Quoted-Printable, Modified UTF-7, fragmentierte
-IMAP-Antworten und Literale, MIME/RFC 2047, SMTP-Dot-Stuffing, OAuth-PKCE,
-SHA-256 und Kontovalidierung. `host-check` kompiliert alle Quelldateien mit
-strengen Warnungen; Amiga-spezifische Zweige werden dabei durch Host-Stubs
-ersetzt. Das entstehende Prüfbinary ist nicht als Linux-Anwendung gedacht und
-wird daher nicht gestartet.
-
-## Gmail-Anmeldung
-
-### Empfohlen: OAuth 2.0
-
-1. In Google Cloud ein Projekt und einen OAuth-Client vom Typ
-   **Desktopanwendung** anlegen.
-2. Die Gmail-API aktivieren und den Scope `https://mail.google.com/` zulassen.
-3. `config/oauth_client_config.h.example` nach
-   `include/oauth_client_config.h` kopieren und die Client-ID eintragen.
-4. Authorization Code + PKCE verwenden. Die Bibliotheksfunktionen erzeugen
-   Verifier, Challenge und State, bauen die Autorisierungs-URL, tauschen den
-   Code ein und erneuern Access Tokens.
-
-Der vollständige ReAction-Anmeldeassistent einschließlich lokalem
-Loopback-Callback ist noch nicht implementiert. Ein Client-Secret gehört bei
-einer Desktopanwendung nicht als vermeintliches Geheimnis in eine öffentliche
-68k-Binärdatei.
-
-### Alternative: Gmail-App-Passwort
-
-Für ein Google-Konto mit aktivierter Bestätigung in zwei Schritten kann ein
-16-stelliges App-Passwort verwendet werden. Es ersetzt nicht das normale
-Google-Passwort. AmiGmail validiert das Format und überträgt es nur innerhalb
-der TLS-Verbindung.
-
-Der ReAction-Kontodialog speichert das App-Passwort verschlüsselt und kann den
-Posteingang auf Wunsch beim Programmstart automatisch abrufen. Zusätzlich kann
-**Periodischer Abruf (5 Min.)** aktiviert werden. AmiGmail prüft dann alle fünf
-Minuten den Posteingang und lädt nach dem ersten Abruf nur UIDs, die neuer als
-die zuletzt bekannte Inbox-UID sind. Ein gerade geöffneter anderer Ordner wird
-dadurch nicht umgeschaltet.
-
-## Konfigurations- und Sicherheitsmodell
-
-`src/storage.c` definiert das Format `AMIGMAIL-ACCOUNT-1`. Anzeigename und
-Serverdaten sind normale Metadaten. Refresh Token beziehungsweise App-Passwort
-werden nur mit einem Master-Passwort gespeichert; der Schlüssel entsteht über
-PBKDF2-HMAC-SHA256 (100.000 Iterationen), die Nutzdaten werden mit
-AES-256-GCM geschützt. Geschrieben wird zunächst eine `.new`-Datei und danach
-umbenannt.
-
-Beim Start kann das gespeicherte Konto mit dem Master-Passwort entsperrt werden.
-
-## Quellstruktur
-
-| Bereich | Dateien | Aufgabe |
-|---|---|---|
-| Anwendung/GUI | `app.c`, `gui.c`, `i18n.c` | Lebenszyklus, ReAction-Fenster und Deutsch/Englisch-Umschaltung |
-| Asynchronität | `network_task.c` | eigener Prozess und Message Ports |
-| Gmail/IMAP | `imap.c`, `imap_parser.c` | Anmeldung, Labels, UIDs, Literale |
-| Versand | `smtp.c` | TLS-SMTP und Antworten |
-| Nachricht | `mime.c`, `codec.c`, `charset.c` | MIME, Transferkodierungen, Text |
-| Sicherheit | `tls.c`, `oauth.c`, `crypto.c`, `storage.c` | AmiSSL, PKCE, SHA-256, Secrets |
-| Tests | `tests/test_main.c` | portable Protokoll- und Codec-Tests |
-
-Weitere technische Details stehen in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) und
-[docs/OAUTH_SETUP.md](docs/OAUTH_SETUP.md).
-
-## Bekannte Grenzen
-
-- kein verifizierter 68k-Build in der vorliegenden Umgebung
-- der OAuth-Callback-Assistent fehlt; der aktuelle GUI-Pfad verwendet ein
-  Gmail-App-Passwort
-- SMTP STARTTLS auf Port 587 ist noch nicht implementiert; Port 465 wird genutzt
-- nur Textantworten mit Anlagen, keine HTML-Komposition
-- kein Offline-Cache und keine Volltextsuche
-- einfache MIME-Auswahl statt vollständig verschachteltem MIME-Baum
-
-## Referenzen
-
-- [Gmail: IMAP, POP und SMTP](https://developers.google.com/workspace/gmail/imap/imap-smtp)
-- [Gmail: IMAP-Erweiterungen und Labels](https://developers.google.com/workspace/gmail/imap/imap-extensions)
-- [Google OAuth 2.0 für installierte Anwendungen](https://developers.google.com/identity/protocols/oauth2/native-app)
-- [AmiSSL-Projekt und SDK-Hinweise](https://github.com/jens-maus/amissl)
 
 ![Configuration of AmiGmail](https://github.com/Andiweli/AmiGmail/blob/main/images/amigmail-config.jpg)
+
+## ⚙️ Requirements
+
+- **AmigaOS 3.2+**
+- 68020 CPU or newer
+- ReAction
+- TCP/IP stack with `bsdsocket.library` V4
+- **AmiSSL 5.x** with a valid `AmiSSL:` assign and current CA certificates
+- Correct system date and time for TLS certificate validation
+- Gmail account with two-step verification and an App Password
+
+AmiGmail has been tested on accelerated Amiga systems including **PiStorm32 / CM4**, from HiRes Interlace configurations up to higher-resolution P96 screens.
+
+## 🌍 Languages
+
+AmiGmail currently supports:
+
+- **German** when AmigaOS is configured for German
+- **English** on all other system language configurations
+
+Additional interface languages are currently not planned.
+
+## ⚠️ Limitations
+
+- Gmail only
+- Single account only
+- No local/offline mail cache
+- No local full-text search database
+- Plain-text message composition rather than an HTML editor
+- German and English user interface only
+
+## 🔗 References
+
+- [Gmail IMAP, POP and SMTP](https://developers.google.com/workspace/gmail/imap/imap-smtp)
+- [Gmail IMAP extensions and labels](https://developers.google.com/workspace/gmail/imap/imap-extensions)
+- [AmiSSL project](https://github.com/jens-maus/amissl)
 
 ## 📧 Legal
 
