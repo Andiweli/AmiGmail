@@ -3,6 +3,7 @@
 #include "oauth.h"
 #include "oauth_client_config.h"
 #include "tls.h"
+#include "update.h"
 #include "i18n.h"
 
 #define T(de, en) amg_tr((de), (en))
@@ -110,6 +111,10 @@ static const char *network_operation(AmgNetCommandType type)
             return T("Antwort senden", "send reply");
         case AMG_NET_SEND_MAIL:
             return T("Mail senden", "send mail");
+        case AMG_NET_CHECK_UPDATE:
+            return T("AmiGmail-Update pr\303\274fen", "check AmiGmail update");
+        case AMG_NET_DOWNLOAD_UPDATE:
+            return T("AmiGmail-Update herunterladen", "download AmiGmail update");
         default:
             return T("Netzwerkzugriff", "network access");
     }
@@ -429,6 +434,27 @@ static void network_worker(void)
                 case AMG_NET_SEND_MAIL:
                     result = send_new_mail(network, message,
                                            tokens.access_token, &error);
+                    break;
+
+                case AMG_NET_CHECK_UPDATE:
+                {
+                    AmgUpdateInfo info;
+                    memset(&info, 0, sizeof(info));
+                    result = amg_update_check_latest(&info, &error);
+                    if (result == AMG_OK) {
+                        copy_text(message->argument1,
+                                  sizeof(message->argument1), info.tag);
+                        copy_text(message->argument2,
+                                  sizeof(message->argument2),
+                                  info.download_url);
+                    }
+                    break;
+                }
+
+                case AMG_NET_DOWNLOAD_UPDATE:
+                    result = amg_update_download(message->argument1,
+                                                 message->argument2,
+                                                 &error);
                     break;
 
                 default:

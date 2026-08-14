@@ -22,6 +22,10 @@
 #define GUI_SYSTEM_LABEL_VISIBLE_COUNT 6U
 #define COMPOSE_PATH_MAX 512U
 #define COMPOSE_NAME_MAX 256U
+#define GUI_MAIN_DEFAULT_WIDTH 720L
+#define GUI_MAIN_DEFAULT_HEIGHT 480L
+#define GUI_MAIN_MIN_WIDTH 620L
+#define GUI_MAIN_MIN_HEIGHT 320L
 
 enum MainGadgetId {
     GID_NEW_MAIL = 1,
@@ -38,7 +42,8 @@ enum MainGadgetId {
     GID_PREVIEW,
     GID_PREVIEW_SCROLL,
     GID_SAVE_ATTACHMENTS,
-    GID_STATUS
+    GID_STATUS,
+    GID_UPDATE
 };
 
 
@@ -103,6 +108,7 @@ struct AmgGui {
     struct Gadget *preview_gadget;
     struct Gadget *preview_scroller;
     struct Gadget *save_attachments_gadget;
+    struct Gadget *update_gadget;
     struct Image label_show_image;
     struct Image label_hide_image;
     UWORD *label_show_image_data;
@@ -147,6 +153,8 @@ struct AmgGui {
     LONG unread_pen;
     unsigned char unread_pen_owned;
     LONG text_pen;
+    LONG update_pen;
+    unsigned char update_pen_owned;
     struct MsgPort *periodic_timer_port;
     struct timerequest *periodic_timer_request;
     int periodic_timer_device_open;
@@ -154,11 +162,26 @@ struct AmgGui {
     int periodic_check_pending;
     unsigned long inbox_latest_uid;
     int inbox_baseline_ready;
+    unsigned long inbox_unseen_count;
+    int inbox_unseen_known;
     ULONG message_click_seconds;
     ULONG message_click_micros;
     ULONG message_click_uid;
     int message_click_valid;
     PendingTempCleanup *pending_temp_cleanups;
+    int mail_network_started;
+    int update_check_started;
+    int update_check_deferred;
+    int update_check_pending;
+    int update_download_pending;
+    int update_available;
+    char update_tag[32];
+    char update_download_url[768];
+    int window_state_valid;
+    LONG saved_window_left;
+    LONG saved_window_top;
+    LONG saved_window_width;
+    LONG saved_window_height;
     int running;
 };
 
@@ -206,6 +229,22 @@ struct Node *find_node_by_user_data(struct List *list, ULONG user_data);
 void set_scroller_full(struct Window *window, struct Gadget *scroller);
 
 
+
+/* Window persistence and ENV status. */
+void gui_state_prepare_window(AmgGui *gui);
+void gui_state_save_window(const AmgGui *gui);
+void gui_state_set_mail_status_active(void);
+void gui_state_set_mail_status_inactive(void);
+void gui_state_set_inbox_unseen(AmgGui *gui, unsigned long count);
+void gui_state_adjust_inbox_unseen(AmgGui *gui, long delta);
+
+/* GitHub release check/download GUI integration. */
+void gui_update_refresh_gadget(AmgGui *gui);
+void gui_update_request_check(AmgGui *gui);
+void gui_update_handle_check(AmgGui *gui, const AmgNetworkEvent *event);
+void gui_update_start_download(AmgGui *gui, AmgError *error);
+void gui_update_handle_download(AmgGui *gui, const AmgNetworkEvent *event);
+
 /* mailto: integration module entry points. Private to src/gui_*.c. */
 int open_mailto_compose(AmgGui *gui, const char *url, AmgError *error);
 void handle_mailto_requests(AmgGui *gui, AmgMailtoServer *server,
@@ -244,6 +283,8 @@ void show_message_placeholder(AmgGui *gui, const char *text);
 size_t message_uid_stats(const unsigned char *payload, size_t length,
                          unsigned long baseline, unsigned long *max_uid,
                          int *parse_error);
+size_t message_unseen_count_from_payload(const unsigned char *payload,
+                                         size_t length, int *parse_error);
 int message_list_uses_recipient(const AmgGui *gui, size_t label_index);
 void set_message_party_column_mode(AmgGui *gui, int recipient);
 size_t update_messages_from_payload(AmgGui *gui,

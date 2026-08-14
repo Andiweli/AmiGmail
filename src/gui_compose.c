@@ -875,6 +875,7 @@ static int queue_composed_mail(AmgGui *gui, struct Window *window,
     draft.attachments = inputs;
     draft.attachment_count = attachment_count;
 
+    gui->mail_network_started = 1;
     if (!amg_network_is_running(gui->network)) {
         result = amg_network_start(gui->network, gui->account, error);
         if (result == AMG_OK)

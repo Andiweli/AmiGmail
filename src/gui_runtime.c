@@ -115,7 +115,8 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
                       T("Workbench-Fenster konnte nicht ge\303\266ffnet werden.", "Workbench window could not be opened."));
         return AMG_ERR_IO;
     }
-    center_window_on_screen(gui->window);
+    if (!gui->window_state_valid)
+        center_window_on_screen(gui->window);
     draw_window_overlays(gui);
     GetAttr(WINDOW_SigMask, gui->window_object, &window_signal);
     mailto_signal = amg_mailto_server_signal_mask(mailto_server);
@@ -137,8 +138,14 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
             T("Periodischer Abruf ist nicht verf\374gbar (timer.device).",
               "Periodic fetch is unavailable (timer.device)."));
 
-    if (!account_is_locked(gui->account) && gui->account->fetch_on_start)
+    if (!account_is_locked(gui->account) && gui->account->fetch_on_start) {
+        /* Der Update-Check soll den initialen Gmail-Abruf nicht in der
+         * seriellen Netzwerk-Queue ueberholen. */
+        gui->update_check_deferred = 1;
         fetch_mail(gui, error);
+    } else {
+        gui_update_request_check(gui);
+    }
 
     if (startup_mailto && !account_is_locked(gui->account))
         (void)open_mailto_compose(gui, startup_mailto, error);
@@ -203,6 +210,8 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
     }
     gui->preview_url_signal_task = NULL;
     periodic_timer_cleanup(gui);
+    gui_state_save_window(gui);
+    gui_state_set_mail_status_inactive();
     amg_network_stop(gui->network);
     gui->window = NULL;
     return AMG_OK;

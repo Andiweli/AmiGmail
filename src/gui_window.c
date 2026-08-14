@@ -249,6 +249,24 @@ static void prepare_text_pen(AmgGui *gui)
     }
 }
 
+static void prepare_update_pen(AmgGui *gui)
+{
+    LONG pen;
+    if (!gui || !gui->screen) return;
+    /* Deep blue (#003366) stays readable on the banner's #888888 grey
+     * without the visual harshness of the previous full-intensity red. */
+    pen = ObtainBestPenA(gui->screen->ViewPort.ColorMap,
+                         0x00000000UL, 0x33333333UL, 0x66666666UL, NULL);
+    if (pen >= 0) {
+        gui->update_pen = pen;
+        gui->update_pen_owned = 1U;
+        return;
+    }
+    pen = FindColor(gui->screen->ViewPort.ColorMap,
+                    0x00000000UL, 0x33333333UL, 0x66666666UL, -1L);
+    gui->update_pen = pen >= 0 ? pen : (LONG)gui->screen->DetailPen;
+}
+
 void center_window_on_screen(struct Window *window)
 {
     LONG left, top;
@@ -347,6 +365,47 @@ static void draw_banner(AmgGui *gui)
                             right - logo_left + 1L, 28L);
 }
 
+static void draw_version_text(AmgGui *gui)
+{
+    static const char version_text[] = "Version " AMIGMAIL_VERSION;
+    struct RastPort *rp;
+    struct TextFont *old_font;
+    LONG header_top, status_top, right, text_width, text_x, text_y;
+    LONG available_height;
+    UBYTE old_fg, old_mode;
+
+    if (!gui || !gui->window || !gui->update_gadget || !gui->screen) return;
+    rp = gui->window->RPort;
+    if (!rp || !gui->screen->RastPort.Font) return;
+
+    header_top = gui->window->BorderTop;
+    status_top = (LONG)gui->update_gadget->TopEdge;
+    right = (LONG)gui->update_gadget->LeftEdge +
+            (LONG)gui->update_gadget->Width - 1L;
+    available_height = status_top - header_top;
+    if (available_height <= 0L) return;
+
+    old_font = rp->Font;
+    SetFont(rp, gui->screen->RastPort.Font);
+    text_width = TextLength(rp, (CONST_STRPTR)version_text,
+                            (ULONG)(sizeof(version_text) - 1U));
+    text_x = right - text_width + 1L;
+    text_y = header_top +
+             (available_height - (LONG)rp->TxHeight) / 2L +
+             (LONG)rp->TxBaseline;
+
+    old_fg = rp->FgPen;
+    old_mode = rp->DrawMode;
+    SetDrMd(rp, JAM1);
+    SetAPen(rp, (ULONG)(gui->text_pen >= 0 ? gui->text_pen : old_fg));
+    Move(rp, text_x, text_y);
+    Text(rp, (CONST_STRPTR)version_text,
+         (ULONG)(sizeof(version_text) - 1U));
+    SetAPen(rp, old_fg);
+    SetDrMd(rp, old_mode);
+    if (old_font) SetFont(rp, old_font);
+}
+
 static void draw_message_flag_header(AmgGui *gui)
 {
     struct RastPort *rp;
@@ -391,6 +450,8 @@ static void draw_message_flag_header(AmgGui *gui)
 void draw_window_overlays(AmgGui *gui)
 {
     draw_banner(gui);
+    gui_update_refresh_gadget(gui);
+    draw_version_text(gui);
     sync_labels_scroller(gui);
     sync_messages_scroller(gui);
     sync_preview_scroller(gui, 0);
@@ -407,9 +468,11 @@ int create_window(AmgGui *gui, AmgError *error)
                       T("Workbench-Bildschirm konnte nicht gesperrt werden.", "Workbench screen could not be locked."));
         return AMG_ERR_IO;
     }
+    gui_state_prepare_window(gui);
     prepare_banner_pens(gui);
     prepare_unread_pen(gui);
     prepare_text_pen(gui);
+    prepare_update_pen(gui);
     init_preview_url_hook(gui);
     init_label_tree_render_hook(gui);
     init_compact_list_render_hooks(gui);
@@ -426,6 +489,41 @@ int create_window(AmgGui *gui, AmgError *error)
     banner_row = HGroupObject,
         LAYOUT_SpaceOuter, FALSE,
         LAYOUT_SpaceInner, FALSE,
+        LAYOUT_AddChild, HGroupObject,
+            LAYOUT_SpaceOuter, FALSE,
+            LAYOUT_SpaceInner, FALSE,
+        EndObject,
+        LAYOUT_AddChild, VGroupObject,
+            LAYOUT_SpaceOuter, TRUE,
+            LAYOUT_SpaceInner, FALSE,
+            /* Reserve a small first line for the version text.  The text
+             * itself is drawn as a JAM1 overlay in draw_version_text(), so
+             * no gadget background can cover the header artwork. */
+            LAYOUT_AddChild, HGroupObject,
+                LAYOUT_SpaceOuter, FALSE,
+                LAYOUT_SpaceInner, FALSE,
+            EndObject,
+            CHILD_MinHeight, 9,
+            CHILD_MaxHeight, 9,
+            CHILD_WeightedHeight, 0,
+            LAYOUT_AddChild,
+                gui->update_gadget = (struct Gadget *)ButtonObject,
+                GA_ID, GID_UPDATE,
+                GA_RelVerify, TRUE,
+                GA_ReadOnly, TRUE,
+                GA_Text, T("Aktuelle Version", "Up to date"),
+                BUTTON_DomainString, T("Aktuelle Version", "Up to date"),
+                BUTTON_BevelStyle, BVS_THIN,
+                BUTTON_Transparent, FALSE,
+                BUTTON_Justification, BCJ_CENTER,
+                BUTTON_TextPen, gui->text_pen,
+                BUTTON_BackgroundPen, gui->banner_pens[0],
+                BUTTON_FillTextPen, gui->text_pen,
+                BUTTON_FillPen, gui->banner_pens[0],
+            EndObject,
+            CHILD_WeightedHeight, 0,
+        EndObject,
+        CHILD_WeightedWidth, 0,
     EndObject;
     if (!banner_row) {
         amg_error_set(error, AMG_ERR_MEMORY,
@@ -494,12 +592,21 @@ int create_window(AmgGui *gui, AmgError *error)
                       WFLG_SIZEGADGET | WFLG_ACTIVATE,
         WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_MENUPICK |
                       IDCMP_RAWKEY | IDCMP_NEWSIZE | IDCMP_REFRESHWINDOW,
-        WA_Width, 720,
-        WA_Height, 480,
-        WA_MinWidth, 620,
-        WA_MinHeight, 320,
+        gui->window_state_valid ? WA_Left : TAG_IGNORE,
+            (ULONG)gui->saved_window_left,
+        gui->window_state_valid ? WA_Top : TAG_IGNORE,
+            (ULONG)gui->saved_window_top,
+        WA_InnerWidth, gui->window_state_valid
+            ? (ULONG)gui->saved_window_width
+            : (ULONG)GUI_MAIN_DEFAULT_WIDTH,
+        WA_InnerHeight, gui->window_state_valid
+            ? (ULONG)gui->saved_window_height
+            : (ULONG)GUI_MAIN_DEFAULT_HEIGHT,
+        WA_MinWidth, GUI_MAIN_MIN_WIDTH,
+        WA_MinHeight, GUI_MAIN_MIN_HEIGHT,
         WA_PubScreen, gui->screen,
-        WINDOW_Position, WPOS_CENTERSCREEN,
+        gui->window_state_valid ? TAG_IGNORE : WINDOW_Position,
+            WPOS_CENTERSCREEN,
         WINDOW_NewMenu, amg_i18n_is_german() ? menus_de : menus_en,
         WINDOW_ParentGroup, VGroupObject,
             LAYOUT_SpaceOuter, FALSE,

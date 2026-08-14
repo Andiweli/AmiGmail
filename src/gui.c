@@ -485,6 +485,7 @@ AmgGui *amg_gui_create(AmgAccount *account, AmgError *error)
         return NULL;
     }
     gui->account = account;
+    gui_state_set_mail_status_active();
     NewList(&gui->system_labels_list);
     NewList(&gui->labels_list);
     NewList(&gui->messages_list);
@@ -510,6 +511,8 @@ void amg_gui_destroy(AmgGui *gui)
     gui->window_object = NULL;
     dispose_label_tree_images(gui);
     if (gui->screen) {
+        if (gui->update_pen_owned && gui->update_pen >= 0)
+            ReleasePen(gui->screen->ViewPort.ColorMap, gui->update_pen);
         if (gui->unread_pen_owned && gui->unread_pen >= 0)
             ReleasePen(gui->screen->ViewPort.ColorMap, gui->unread_pen);
         for (i = 0; i < BANNER_COLOR_COUNT; ++i) {
@@ -525,6 +528,7 @@ void amg_gui_destroy(AmgGui *gui)
     FreeListBrowserList(&gui->labels_list);
     FreeListBrowserList(&gui->messages_list);
     amg_network_destroy(gui->network);
+    gui_state_set_mail_status_inactive();
     cleanup_all_pending_temp_files(gui);
     free(gui);
     close_classes();

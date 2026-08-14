@@ -20,7 +20,9 @@ typedef enum AmgNetCommandType {
     AMG_NET_SAVE_DRAFT,
     AMG_NET_SEND_DRAFT,
     AMG_NET_SEND_REPLY,
-    AMG_NET_SEND_MAIL
+    AMG_NET_SEND_MAIL,
+    AMG_NET_CHECK_UPDATE,
+    AMG_NET_DOWNLOAD_UPDATE
 } AmgNetCommandType;
 
 typedef struct AmgNetwork AmgNetwork;

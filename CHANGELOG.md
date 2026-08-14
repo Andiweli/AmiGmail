@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.4 – 2026-08-14
+
+- Fensterzustand korrigiert: window.class-Innenmasse werden getrennt von den aeusseren Intuition-Massen gespeichert, damit Breite und Hoehe pixelgenau wiederhergestellt werden
+- Update-Anzeige im Header als kompakter zweizeiliger Status aufgebaut: transparenter Text `Version 1.4` plus `Aktuelle Version` / `Up to date`; bei neuem Release `Neues Update` / `new Update`
+- deaktiviertes Ghost-/Punktmuster entfernt; der Status verwendet stattdessen `GA_ReadOnly` und einen dezenten duennen Buttonrahmen
+- Update-Farbe von Vollrot auf ein dezentes Dunkelblau (`#003366`, soweit die Workbench-Palette dies abbilden kann) geaendert
+- `AmiGmailStatus` meldet `Keine neue(n) Mail(s)` / `No new Mail` oder `Neue Mail(s) im Posteingang` / `New mail(s) in Inbox`; beim Beenden sowie nach einem Neustart bleibt `AmiGmail nicht aktiv` / `AmiGmail is not active` ueber ENVARC: erhalten
+- einmalige, nicht blockierende GitHub-Release-Pruefung pro Programmstart mit numerischem Vergleich von Tags wie `v1.4` und `v1.10`
+- Update-Download folgt dem Release-Schema `AmiGmail-vX.Y.lha` und speichert das Archiv unveraendert nach `RAM:`; Entpacken und Installation bleiben bewusst manuell
+- globale Laufzeitvariable `AmiGmailStatus` signalisiert ungelesene Inbox-Mails und wird beim Lesen, Ungelesen-Markieren, Verschieben, Loeschen sowie periodischen Abruf nachgefuehrt
+- Update-Check nutzt den vorhandenen Netzwerk-Worker und bleibt bei Netzwerk-/GitHub-Fehlern still, damit die GUI nicht blockiert wird
+
 ## 1.3 – 2026-08-14
 
 - Programmversion auf 1.3 aktualisiert

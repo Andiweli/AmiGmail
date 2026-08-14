@@ -336,6 +336,23 @@ size_t message_uid_stats(const unsigned char *payload, size_t length,
 }
 
 
+size_t message_unseen_count_from_payload(const unsigned char *payload,
+                                        size_t length, int *parse_error)
+{
+    size_t position = 0U, unseen = 0U;
+    int result = 0;
+    AmgImapFetchRecord record;
+    if (parse_error) *parse_error = 0;
+    while (length > 0U &&
+           (result = amg_imap_fetch_record_next(
+                payload, length, &position, &record)) > 0) {
+        if (!record.seen) ++unseen;
+    }
+    if (result < 0 && parse_error) *parse_error = result;
+    return unseen;
+}
+
+
 int message_list_uses_recipient(const AmgGui *gui, size_t label_index)
 {
     return gui && label_index < gui->label_count &&

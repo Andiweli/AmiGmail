@@ -9,6 +9,7 @@
 #include "smtp.h"
 #include "storage.h"
 #include "tls.h"
+#include "update.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -394,8 +395,41 @@ static void test_i18n(void)
     CHECK(!strcmp(text_buffer, "3 message"));
 }
 
+static void test_update(void)
+{
+    static const char latest_json[] =
+        "{\"tag_name\":\"v1.4\",\"assets\":[]}";
+    AmgUpdateInfo info;
+    AmgError error;
+
+    CHECK(amg_update_is_newer("v1.4", "1.3"));
+    CHECK(amg_update_is_newer("v1.10", "1.9"));
+    CHECK(amg_update_is_newer("v2.0", "1.99"));
+    CHECK(amg_update_is_newer("v1.4.1", "1.4"));
+    CHECK(!amg_update_is_newer("v1.3", "1.3"));
+    CHECK(!amg_update_is_newer("v1.2", "1.3"));
+    CHECK(!amg_update_is_newer("release-1.4", "1.3"));
+
+    memset(&info, 0, sizeof(info));
+    memset(&error, 0, sizeof(error));
+    CHECK(amg_update_parse_latest_json(
+        (const unsigned char *)latest_json, strlen(latest_json),
+        &info, &error) == AMG_OK);
+    CHECK(!strcmp(info.tag, "v1.4"));
+    CHECK(!strcmp(
+        info.download_url,
+        "https://github.com/Andiweli/AmiGmail/releases/download/v1.4/AmiGmail-v1.4.lha"));
+
+    memset(&info, 0, sizeof(info));
+    memset(&error, 0, sizeof(error));
+    CHECK(amg_update_parse_latest_json(
+        (const unsigned char *)"{\"name\":\"AmiGmail\"}",
+        strlen("{\"name\":\"AmiGmail\"}"),
+        &info, &error) == AMG_ERR_PARSE);
+}
+
 int main(void)
 {
-    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_mailto();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_i18n();
+    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_mailto();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_i18n();test_update();
     printf("%u checks, %u failures\n",tests_run,tests_failed);return tests_failed?1:0;
 }

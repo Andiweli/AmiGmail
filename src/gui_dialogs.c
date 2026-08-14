@@ -111,6 +111,8 @@ int account_is_locked(const AmgAccount *account)
 static void replace_account(AmgGui *gui, AmgAccount *replacement)
 {
     amg_network_stop(gui->network);
+    gui->mail_network_started = 0;
+    gui->periodic_check_pending = 0;
     amg_account_clear(gui->account);
     *gui->account = *replacement;
     replacement->app_password = NULL;
@@ -131,7 +133,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
     char remembered_master[128];
     char fetch_days_text[16];
     int done = 0, changed = 0;
-    int restart_network = amg_network_is_running(gui->network);
+    int restart_network = gui->mail_network_started &&
+                          amg_network_is_running(gui->network);
 
     if (restart_network) {
         amg_network_stop(gui->network);
@@ -621,9 +624,11 @@ int account_dialog(AmgGui *gui, AmgError *error)
     }
     if (restart_network && !account_is_locked(gui->account)) {
         int result = amg_network_start(gui->network, gui->account, error);
-        if (result == AMG_OK)
+        if (result == AMG_OK) {
+            gui->mail_network_started = 1;
             result = amg_network_request(gui->network, AMG_NET_CONNECT, 0,
                                          NULL, NULL, error);
+        }
         if (result == AMG_OK)
             status_local(gui, T("Verbinde erneut mit Gmail...", "Reconnecting to Gmail..."));
         else

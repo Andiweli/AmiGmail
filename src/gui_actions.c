@@ -389,11 +389,15 @@ static void toggle_selected_seen(AmgGui *gui, AmgError *error)
     }
     for (i = 0; i < count; ++i) {
         int seen = !message_is_seen(gui, uids[i]);
+        int in_inbox = !strcmp(gui->current_mailbox_utf8, "INBOX");
         int result = amg_network_request(
             gui->network, AMG_NET_SET_SEEN, uids[i],
-            seen ? "1" : "0", "button", error);
+            seen ? "1" : "0", in_inbox ? "button-inbox" : "button",
+            error);
         if (result != AMG_OK) break;
         set_message_seen_visual(gui, uids[i], seen);
+        if (in_inbox)
+            gui_state_adjust_inbox_unseen(gui, seen ? -1L : 1L);
         ++queued;
     }
     free(uids);
@@ -529,15 +533,42 @@ void handle_network(AmgGui *gui)
         if (event.type == AMG_NET_SAVE_DRAFT ||
             event.type == AMG_NET_SEND_DRAFT)
             finish_pending_temp_cleanup(gui, event.type, event.uid);
+
+        /* Update-Pruefungen sind bewusst still. Ein fehlendes GitHub oder
+         * Netzwerk darf beim Programmstart keinen Fehlerdialog/-status erzeugen. */
+        if (event.type == AMG_NET_CHECK_UPDATE) {
+            gui_update_handle_check(gui, &event);
+            amg_network_event_clear(&event);
+            continue;
+        }
+        if (event.type == AMG_NET_DOWNLOAD_UPDATE) {
+            gui_update_handle_download(gui, &event);
+            if (event.result == AMG_OK) {
+                amg_network_event_clear(&event);
+                continue;
+            }
+        }
+
         if (event.result != AMG_OK) {
-            if (event.type == AMG_NET_SET_SEEN)
+            if (event.type == AMG_NET_SET_SEEN) {
                 set_message_seen_visual(
                     gui, event.uid, atoi(event.argument1) == 0);
-            else if (event.type == AMG_NET_SET_FLAGGED)
+                if (strstr(event.argument2, "-inbox"))
+                    gui_state_adjust_inbox_unseen(
+                        gui, atoi(event.argument1) ? 1L : -1L);
+            } else if (event.type == AMG_NET_SET_FLAGGED) {
                 set_message_flagged_visual(
                     gui, event.uid, atoi(event.argument1) == 0);
+            }
             status_utf8(gui,
                         event.message[0] ? event.message : T("Netzwerkfehler", "Network error"));
+            if (gui->update_check_deferred &&
+                (event.type == AMG_NET_CONNECT ||
+                 event.type == AMG_NET_FETCH_LABELS ||
+                 event.type == AMG_NET_FETCH_INBOX)) {
+                gui->update_check_deferred = 0;
+                gui_update_request_check(gui);
+            }
         } else {
             switch (event.type) {
                 case AMG_NET_CONNECT:
@@ -573,6 +604,10 @@ void handle_network(AmgGui *gui)
                     recipient = message_list_uses_recipient(gui, index);
                     set_message_party_column_mode(gui, recipient);
                     if (index == 0U) {
+                        int unseen_parse_error = 0;
+                        size_t unseen_count = message_unseen_count_from_payload(
+                            event.payload, event.payload_length,
+                            &unseen_parse_error);
                         (void)message_uid_stats(
                             event.payload, event.payload_length, 0UL,
                             &max_uid, &uid_parse_error);
@@ -580,6 +615,9 @@ void handle_network(AmgGui *gui)
                             gui->inbox_latest_uid = max_uid;
                             gui->inbox_baseline_ready = 1;
                         }
+                        if (unseen_parse_error >= 0)
+                            gui_state_set_inbox_unseen(
+                                gui, (unsigned long)unseen_count);
                     }
                     count = update_messages_from_payload(
                         gui, event.payload, event.payload_length, recipient,
@@ -617,16 +655,25 @@ void handle_network(AmgGui *gui)
                                             : T("Ordner", "folder"));
                     }
                     status_local(gui, message);
+                    if (index == 0U && gui->update_check_deferred) {
+                        gui->update_check_deferred = 0;
+                        gui_update_request_check(gui);
+                    }
                     break;
                 }
                 case AMG_NET_CHECK_INBOX:
                 {
                     unsigned long max_uid = 0UL;
                     unsigned long previous_uid = gui->inbox_latest_uid;
+                    int had_baseline = gui->inbox_baseline_ready;
                     int parse_error = 0;
+                    int unseen_parse_error = 0;
+                    size_t unseen_count = message_unseen_count_from_payload(
+                        event.payload, event.payload_length,
+                        &unseen_parse_error);
                     size_t new_count = message_uid_stats(
                         event.payload, event.payload_length,
-                        gui->inbox_baseline_ready ? previous_uid : 0UL,
+                        had_baseline ? previous_uid : 0UL,
                         &max_uid, &parse_error);
                     if (parse_error < 0) {
                         char message[160];
@@ -637,11 +684,18 @@ void handle_network(AmgGui *gui)
                         status_local(gui, message);
                         break;
                     }
-                    if (!gui->inbox_baseline_ready) {
+                    if (!had_baseline) {
                         new_count = 0U;
                         gui->inbox_latest_uid = max_uid;
-                    } else if (max_uid > gui->inbox_latest_uid) {
-                        gui->inbox_latest_uid = max_uid;
+                        if (unseen_parse_error >= 0)
+                            gui_state_set_inbox_unseen(
+                                gui, (unsigned long)unseen_count);
+                    } else {
+                        if (max_uid > gui->inbox_latest_uid)
+                            gui->inbox_latest_uid = max_uid;
+                        if (unseen_parse_error >= 0 && unseen_count > 0U)
+                            gui_state_adjust_inbox_unseen(
+                                gui, (long)unseen_count);
                     }
                     gui->inbox_baseline_ready = 1;
 
@@ -683,10 +737,15 @@ void handle_network(AmgGui *gui)
                         retain_current_message_payload(gui, &event);
                         set_message_selected_visual(gui, event.uid);
                         if (unread_before) {
+                            int in_inbox =
+                                !strcmp(gui->current_mailbox_utf8, "INBOX");
                             set_message_seen_visual(gui, event.uid, 1);
+                            if (in_inbox)
+                                gui_state_adjust_inbox_unseen(gui, -1L);
                             (void)amg_network_request(
                                 gui->network, AMG_NET_SET_SEEN, event.uid,
-                                "1", "preview", NULL);
+                                "1", in_inbox ? "preview-inbox" : "preview",
+                                NULL);
                         }
                         if (edit_draft) {
                             ComposeDraftSeed seed;
@@ -737,7 +796,7 @@ void handle_network(AmgGui *gui)
                 case AMG_NET_SET_SEEN:
                     set_message_seen_visual(
                         gui, event.uid, atoi(event.argument1) != 0);
-                    if (strcmp(event.argument2, "preview"))
+                    if (strncmp(event.argument2, "preview", 7U))
                         status_local(
                             gui, atoi(event.argument1)
                                 ? T("Nachricht als gelesen markiert.", "Message marked as read.")
@@ -752,6 +811,9 @@ void handle_network(AmgGui *gui)
                             : T("Sternmarkierung wurde entfernt.", "Star was removed."));
                     break;
                 case AMG_NET_DELETE:
+                    if (!strcmp(gui->current_mailbox_utf8, "INBOX") &&
+                        !message_is_seen(gui, event.uid))
+                        gui_state_adjust_inbox_unseen(gui, -1L);
                     remove_message_uid(gui, event.uid);
                     status_local(gui,
                                  T("Nachricht wurde in den Papierkorb verschoben.", "Message moved to Trash."));
@@ -805,6 +867,13 @@ void handle_network(AmgGui *gui)
                     size_t target = label_index_for_gmail_label(
                         gui, event.argument2);
                     const char *target_name = event.argument2;
+                    int was_unseen = !message_is_seen(gui, event.uid);
+                    if (was_unseen) {
+                        if (!strcmp(gui->current_mailbox_utf8, "INBOX"))
+                            gui_state_adjust_inbox_unseen(gui, -1L);
+                        else if (target == 0U)
+                            gui_state_adjust_inbox_unseen(gui, 1L);
+                    }
                     remove_message_uid(gui, event.uid);
                     if (target < gui->label_count)
                         target_name = gui->labels[target].path_local[0]
@@ -834,6 +903,7 @@ void periodic_fetch_mail(AmgGui *gui, AmgError *error)
     if (!gui || !gui->account || !gui->account->periodic_fetch ||
         account_is_locked(gui->account) || gui->periodic_check_pending)
         return;
+    gui->mail_network_started = 1;
     if (!amg_network_is_running(gui->network))
         result = amg_network_start(gui->network, gui->account, error);
     if (result != AMG_OK) {
@@ -860,6 +930,7 @@ void fetch_mail(AmgGui *gui, AmgError *error)
 {
     int result = AMG_OK;
     if (!ensure_account(gui, error)) return;
+    gui->mail_network_started = 1;
     if (!amg_network_is_running(gui->network)) {
         result = amg_network_start(gui->network, gui->account, error);
     }
@@ -877,6 +948,10 @@ void fetch_mail(AmgGui *gui, AmgError *error)
                                      NULL, error);
         if (result != AMG_OK) status_utf8(gui, error->message);
     }
+    if (result != AMG_OK && gui->update_check_deferred) {
+        gui->update_check_deferred = 0;
+        gui_update_request_check(gui);
+    }
 }
 
 void handle_main_gadget(AmgGui *gui, ULONG gadget_id,
@@ -889,6 +964,9 @@ void handle_main_gadget(AmgGui *gui, ULONG gadget_id,
             break;
         case GID_FETCH:
             fetch_mail(gui, error);
+            break;
+        case GID_UPDATE:
+            gui_update_start_download(gui, error);
             break;
         case GID_SYSTEM_LABELS:
             handle_label_gadget(gui, gui->system_labels_gadget, 0, error);
