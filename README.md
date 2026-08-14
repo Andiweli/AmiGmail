@@ -101,7 +101,7 @@ AmiGmail currently supports:
 
 Additional interface languages are currently not planned.
 
-## ⚠️ Current Limitations
+## ⚠️ Limitations
 
 - Gmail only
 - Single account only
