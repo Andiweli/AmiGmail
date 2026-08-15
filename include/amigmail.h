@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define AMIGMAIL_NAME "AmiGmail"
-#define AMIGMAIL_VERSION "1.4"
+#define AMIGMAIL_VERSION "1.5"
 #define AMIGMAIL_PAGE_SIZE 50U
 #define AMIGMAIL_MAX_LINE (256UL * 1024UL)
 #define AMIGMAIL_MAX_MESSAGE (8UL * 1024UL * 1024UL)

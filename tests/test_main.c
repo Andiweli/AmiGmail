@@ -165,6 +165,7 @@ static void test_storage_metadata(void)
 {
     const char *path = "build/test-account.cfg";
     const char *master_path = "build/test-master.cfg";
+    const char *legacy_path = "build/test-account-legacy.cfg";
     AmgAccount saved, loaded;
     AmgError error;
     char master[128];
@@ -176,6 +177,8 @@ static void test_storage_metadata(void)
     saved.fetch_on_start = 1;
     saved.periodic_fetch = 1;
     saved.fetch_days = 180U;
+    saved.notification_sound = 1;
+    strcpy(saved.notification_sound_path, "PROGDIR:Sounds/New Mail.8svx");
     CHECK(amg_storage_save_account(path, &saved, NULL, &error) == AMG_OK);
     CHECK(amg_storage_load_account(path, NULL, &loaded, &error) == AMG_OK);
     CHECK(!strcmp(loaded.display_name, saved.display_name));
@@ -183,8 +186,28 @@ static void test_storage_metadata(void)
     CHECK(loaded.fetch_on_start == 1);
     CHECK(loaded.periodic_fetch == 1);
     CHECK(loaded.fetch_days == 180U);
+    CHECK(loaded.notification_sound == 1);
+    CHECK(!strcmp(loaded.notification_sound_path,
+                  "PROGDIR:Sounds/New Mail.8svx"));
     CHECK(!strcmp(loaded.imap_host, "imap.gmail.com") &&
           loaded.imap_port == 993U);
+
+    /* 1.3 account files do not contain notification fields. They must load
+     * with the safe defaults so upgrading to 1.4 never enables sound by
+     * accident. */
+    file=fopen(legacy_path,"wb");
+    CHECK(file!=NULL);
+    if(file){
+        fputs("AMIGMAIL-ACCOUNT-1\nfetch_days=180\nsecrets=session-only\n",
+              file);
+        fclose(file);
+    }
+    amg_account_clear(&loaded);
+    amg_account_init(&loaded);
+    CHECK(amg_storage_load_account(legacy_path,NULL,&loaded,&error)==AMG_OK);
+    CHECK(loaded.notification_sound==0);
+    CHECK(loaded.notification_sound_path[0]==0);
+
     file=fopen(master_path,"wb");
     CHECK(file!=NULL);
     if(file){fputs("AMIGMAIL-ACCOUNT-1\nremembered_master=546573742d4d6173746572\n",file);fclose(file);}
@@ -194,6 +217,7 @@ static void test_storage_metadata(void)
     amg_secure_clear(master,sizeof(master));
     remove(path);
     remove(master_path);
+    remove(legacy_path);
     amg_account_clear(&saved);
     amg_account_clear(&loaded);
 }

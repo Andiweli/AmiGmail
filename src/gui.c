@@ -19,6 +19,7 @@
 #include <classes/window.h>
 #include <dos/dos.h>
 #include <devices/timer.h>
+#include <datatypes/datatypes.h>
 #include <exec/io.h>
 #include <exec/libraries.h>
 #include <exec/lists.h>
@@ -39,9 +40,11 @@
 #include <libraries/gadtools.h>
 #include <proto/asl.h>
 #include <proto/button.h>
+#include <proto/datatypes.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/graphics.h>
+#include <proto/icon.h>
 #include <proto/intuition.h>
 #include <proto/layout.h>
 #include <proto/listbrowser.h>
@@ -77,6 +80,8 @@ struct Library *StringBase = NULL;
 struct Library *TextEditorBase = NULL;
 struct Library *OpenURLBase = NULL;
 struct Library *AslBase = NULL;
+struct Library *DataTypesBase = NULL;
+struct Library *IconBase = NULL;
 struct GfxBase *GfxBase = NULL;
 
 #define GUI_RAWKEY_KEYPAD_ENTER 0x43UL
@@ -127,6 +132,10 @@ static int open_classes(void)
      * funktionsfaehig, lediglich das Oeffnen erkannter URLs entfaellt. */
     OpenURLBase = OpenLibrary((CONST_STRPTR)"openurl.library", 0);
     AslBase = OpenLibrary((CONST_STRPTR)"asl.library", 37);
+    /* Optional: only required for the configurable new-mail sound. */
+    DataTypesBase = OpenLibrary((CONST_STRPTR)"datatypes.library", 44);
+    /* Optional: a custom Workbench icon can be used while iconified. */
+    IconBase = OpenLibrary((CONST_STRPTR)"icon.library", 39);
     GfxBase = (struct GfxBase *)
         OpenLibrary((CONST_STRPTR)"graphics.library", 39);
     return WindowBase && LayoutBase && ButtonBase && ListBrowserBase &&
@@ -135,6 +144,8 @@ static int open_classes(void)
 
 static void close_classes(void)
 {
+    if (IconBase) CloseLibrary(IconBase);
+    if (DataTypesBase) CloseLibrary(DataTypesBase);
     if (AslBase) CloseLibrary(AslBase);
     if (OpenURLBase) CloseLibrary(OpenURLBase);
     if (TextEditorBase) CloseLibrary(TextEditorBase);
@@ -145,6 +156,8 @@ static void close_classes(void)
     if (LayoutBase) CloseLibrary(LayoutBase);
     if (WindowBase) CloseLibrary(WindowBase);
     if (GfxBase) CloseLibrary((struct Library *)GfxBase);
+    IconBase = NULL;
+    DataTypesBase = NULL;
     AslBase = NULL;
     OpenURLBase = NULL;
     TextEditorBase = NULL;
@@ -181,10 +194,15 @@ const char *string_text(struct Gadget *gadget)
 void set_string(struct Gadget *gadget, struct Window *window,
                        const char *text)
 {
-    if (gadget)
+    if (!gadget) return;
+    if (window)
         SetGadgetAttrs(gadget, window, NULL,
                        STRINGA_TextVal, (ULONG)(uintptr_t)(text ? text : ""),
                        TAG_DONE);
+    else
+        SetAttrs((Object *)gadget,
+                 STRINGA_TextVal, (ULONG)(uintptr_t)(text ? text : ""),
+                 TAG_DONE);
 }
 
 void status_local(AmgGui *gui, const char *text)
@@ -247,21 +265,33 @@ void header_to_local(const char *header, const char *fallback,
 
 void detach_listbrowser(struct Gadget *gadget, struct Window *window)
 {
-    if (gadget)
+    if (!gadget) return;
+    if (window)
         SetGadgetAttrs(gadget, window, NULL,
                        LISTBROWSER_Labels, (ULONG)~0UL,
                        TAG_DONE);
+    else
+        SetAttrs((Object *)gadget,
+                 LISTBROWSER_Labels, (ULONG)~0UL,
+                 TAG_DONE);
 }
 
 void attach_listbrowser(struct Gadget *gadget, struct Window *window,
                                struct List *list)
 {
-    if (gadget)
+    if (!gadget) return;
+    if (window)
         SetGadgetAttrs(gadget, window, NULL,
                        LISTBROWSER_Labels, (ULONG)(uintptr_t)list,
                        LISTBROWSER_Selected, (ULONG)~0UL,
                        LISTBROWSER_Top, 0,
                        TAG_DONE);
+    else
+        SetAttrs((Object *)gadget,
+                 LISTBROWSER_Labels, (ULONG)(uintptr_t)list,
+                 LISTBROWSER_Selected, (ULONG)~0UL,
+                 LISTBROWSER_Top, 0,
+                 TAG_DONE);
 }
 
 
@@ -485,6 +515,7 @@ AmgGui *amg_gui_create(AmgAccount *account, AmgError *error)
         return NULL;
     }
     gui->account = account;
+    gui->notification_sound_signal_bit = -1;
     gui_state_set_mail_status_active();
     NewList(&gui->system_labels_list);
     NewList(&gui->labels_list);
@@ -505,10 +536,20 @@ void amg_gui_destroy(AmgGui *gui)
     size_t i;
     if (!gui) return;
     periodic_timer_cleanup(gui);
+    gui_notify_cleanup(gui);
     free(gui->current_message_payload);
     gui->current_message_payload = NULL;
     if (gui->window_object) DisposeObject(gui->window_object);
     gui->window_object = NULL;
+    if (gui->icon_iconified) FreeDiskObject(gui->icon_iconified);
+    gui->icon_iconified = NULL;
+    if (gui->app_port) {
+        struct Message *message;
+        while ((message = GetMsg(gui->app_port)) != NULL)
+            ReplyMsg(message);
+        DeleteMsgPort(gui->app_port);
+        gui->app_port = NULL;
+    }
     dispose_label_tree_images(gui);
     if (gui->screen) {
         if (gui->update_pen_owned && gui->update_pen >= 0)

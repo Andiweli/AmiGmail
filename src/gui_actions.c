@@ -41,14 +41,20 @@ static int ensure_account(AmgGui *gui, AmgError *error)
 static void update_reply_button_mode(AmgGui *gui)
 {
     const char *text;
-    if (!gui || !gui->reply_gadget || !gui->window) return;
+    if (!gui || !gui->reply_gadget) return;
     text = current_folder_is_drafts(gui)
         ? T("_Bearbeiten", "_Edit")
         : T("A_ntworten", "_Reply");
-    SetGadgetAttrs(gui->reply_gadget, gui->window, NULL,
-                   GA_Text, (ULONG)(uintptr_t)text,
-                   TAG_DONE);
-    RefreshGList(gui->reply_gadget, gui->window, NULL, 1);
+    if (gui->window) {
+        SetGadgetAttrs(gui->reply_gadget, gui->window, NULL,
+                       GA_Text, (ULONG)(uintptr_t)text,
+                       TAG_DONE);
+        RefreshGList(gui->reply_gadget, gui->window, NULL, 1);
+    } else {
+        SetAttrs((Object *)gui->reply_gadget,
+                 GA_Text, (ULONG)(uintptr_t)text,
+                 TAG_DONE);
+    }
 }
 
 
@@ -530,6 +536,8 @@ void handle_network(AmgGui *gui)
     while (amg_network_poll(gui->network, &event) > 0) {
         if (event.type == AMG_NET_CHECK_INBOX)
             gui->periodic_check_pending = 0;
+        if (event.type == AMG_NET_RECONFIGURE)
+            gui->network_reconfigure_pending = 0;
         if (event.type == AMG_NET_SAVE_DRAFT ||
             event.type == AMG_NET_SEND_DRAFT)
             finish_pending_temp_cleanup(gui, event.type, event.uid);
@@ -564,6 +572,7 @@ void handle_network(AmgGui *gui)
                         event.message[0] ? event.message : T("Netzwerkfehler", "Network error"));
             if (gui->update_check_deferred &&
                 (event.type == AMG_NET_CONNECT ||
+                 event.type == AMG_NET_RECONFIGURE ||
                  event.type == AMG_NET_FETCH_LABELS ||
                  event.type == AMG_NET_FETCH_INBOX)) {
                 gui->update_check_deferred = 0;
@@ -572,6 +581,7 @@ void handle_network(AmgGui *gui)
         } else {
             switch (event.type) {
                 case AMG_NET_CONNECT:
+                case AMG_NET_RECONFIGURE:
                     status_local(gui, T("Mit Gmail verbunden.", "Connected to Gmail."));
                     amg_network_request(gui->network, AMG_NET_FETCH_LABELS,
                                         0, NULL, NULL, NULL);
@@ -605,12 +615,16 @@ void handle_network(AmgGui *gui)
                     set_message_party_column_mode(gui, recipient);
                     if (index == 0U) {
                         int unseen_parse_error = 0;
+                        int had_baseline = gui->inbox_baseline_ready;
+                        unsigned long previous_uid = gui->inbox_latest_uid;
                         size_t unseen_count = message_unseen_count_from_payload(
                             event.payload, event.payload_length,
                             &unseen_parse_error);
-                        (void)message_uid_stats(
-                            event.payload, event.payload_length, 0UL,
+                        size_t new_count = message_uid_stats(
+                            event.payload, event.payload_length,
+                            had_baseline ? previous_uid : 0UL,
                             &max_uid, &uid_parse_error);
+                        if (!had_baseline) new_count = 0U;
                         if (uid_parse_error >= 0) {
                             gui->inbox_latest_uid = max_uid;
                             gui->inbox_baseline_ready = 1;
@@ -618,6 +632,7 @@ void handle_network(AmgGui *gui)
                         if (unseen_parse_error >= 0)
                             gui_state_set_inbox_unseen(
                                 gui, (unsigned long)unseen_count);
+                        if (new_count > 0U) gui_notify_new_mail(gui);
                     }
                     count = update_messages_from_payload(
                         gui, event.payload, event.payload_length, recipient,
@@ -712,6 +727,7 @@ void handle_network(AmgGui *gui)
                     }
                     if (new_count > 0U) {
                         char message[128];
+                        gui_notify_new_mail(gui);
                         amg_tr_snprintf(message, sizeof(message),
                                         "Periodischer Abruf: %lu neue Mail(s) im Posteingang.",
                                         "Periodic fetch: %lu new mail(s) in Inbox.",

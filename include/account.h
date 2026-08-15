@@ -15,6 +15,8 @@ typedef struct AmgAccount {
     int fetch_on_start;
     int periodic_fetch;
     unsigned int fetch_days;
+    int notification_sound;
+    char notification_sound_path[512];
     char *app_password;
     char *refresh_token;
 } AmgAccount;

@@ -19,6 +19,8 @@ void amg_account_init(AmgAccount *account)
     account->fetch_on_start = 0;
     account->periodic_fetch = 0;
     account->fetch_days = 180U;
+    account->notification_sound = 0;
+    account->notification_sound_path[0] = 0;
     account->auth_mode = AMG_AUTH_APP_PASSWORD;
 }
 

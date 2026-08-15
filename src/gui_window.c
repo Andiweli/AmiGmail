@@ -1,5 +1,6 @@
 #include "gui_internal.h"
 #include "banner_data.h"
+#include "iconified_data.h"
 #include "i18n.h"
 
 #include <string.h>
@@ -19,7 +20,10 @@
 #include <intuition/intuition.h>
 #include <libraries/gadtools.h>
 #include <proto/button.h>
+#include <proto/dos.h>
+#include <proto/exec.h>
 #include <proto/graphics.h>
+#include <proto/icon.h>
 #include <proto/intuition.h>
 #include <proto/layout.h>
 #include <proto/listbrowser.h>
@@ -31,6 +35,43 @@
 #include <reaction/reaction_macros.h>
 #include <utility/hooks.h>
 #include <utility/tagitem.h>
+#include <workbench/workbench.h>
+
+static struct DiskObject *load_embedded_disk_object(
+    const unsigned char *data, size_t size,
+    const char *base_name, const char *info_name)
+{
+    struct DiskObject *icon = NULL;
+    BPTR file;
+    if (!IconBase || !data || !size || !base_name || !info_name) return NULL;
+
+    /* icon.library has no public memory-source GetDiskObject() on classic
+     * AmigaOS. Materialise the complete embedded .info briefly in T:, let
+     * icon.library build the native DiskObject, then delete the file again. */
+    file = Open((CONST_STRPTR)info_name, MODE_NEWFILE);
+    if (file) {
+        LONG written = Write(file, (APTR)data, (LONG)size);
+        Close(file);
+        if (written == (LONG)size)
+            icon = GetDiskObject((CONST_STRPTR)base_name);
+        DeleteFile((CONST_STRPTR)info_name);
+    }
+    return icon;
+}
+
+static void load_iconify_disk_object(AmgGui *gui)
+{
+    if (!gui) return;
+    gui->icon_iconified = load_embedded_disk_object(
+        amg_icon_iconified_info, amg_icon_iconified_info_size,
+        "T:AmiGmail-Iconified-Embedded",
+        "T:AmiGmail-Iconified-Embedded.info");
+
+    /* Safety fallback for unusual systems where T: or icon.library rejects
+     * the embedded icon. The installed program icon remains usable. */
+    if (!gui->icon_iconified && IconBase)
+        gui->icon_iconified = GetDiskObject((CONST_STRPTR)"PROGDIR:AmiGmail");
+}
 
 /*
  * WindowObject/EndWindow spans several expressions.  Keep the same classic
@@ -462,6 +503,16 @@ int create_window(AmgGui *gui, AmgError *error)
 {
     Object *banner_row;
 
+    if (!gui->app_port) {
+        gui->app_port = CreateMsgPort();
+        if (!gui->app_port) {
+            amg_error_set(error, AMG_ERR_MEMORY,
+                          T("Workbench-AppPort konnte nicht angelegt werden.",
+                            "Workbench AppPort could not be created."));
+            return AMG_ERR_MEMORY;
+        }
+    }
+
     gui->screen = LockPubScreen(NULL);
     if (!gui->screen) {
         amg_error_set(error, AMG_ERR_IO,
@@ -586,6 +637,8 @@ int create_window(AmgGui *gui, AmgError *error)
         return AMG_ERR_MEMORY;
     }
 
+    load_iconify_disk_object(gui);
+
     gui->window_object = WindowObject,
         WA_Title, "AmiGmail",
         WA_Flags, WFLG_CLOSEGADGET | WFLG_DRAGBAR | WFLG_DEPTHGADGET |
@@ -605,6 +658,12 @@ int create_window(AmgGui *gui, AmgError *error)
         WA_MinWidth, GUI_MAIN_MIN_WIDTH,
         WA_MinHeight, GUI_MAIN_MIN_HEIGHT,
         WA_PubScreen, gui->screen,
+        WINDOW_AppPort, gui->app_port,
+        WINDOW_IconTitle, "AmiGmail",
+        gui->icon_iconified ? WINDOW_Icon : TAG_IGNORE,
+            (ULONG)(uintptr_t)gui->icon_iconified,
+        WINDOW_IconNoDispose, TRUE,
+        WINDOW_IconifyGadget, TRUE,
         gui->window_state_valid ? TAG_IGNORE : WINDOW_Position,
             WPOS_CENTERSCREEN,
         WINDOW_NewMenu, amg_i18n_is_german() ? menus_de : menus_en,
@@ -832,6 +891,8 @@ int create_window(AmgGui *gui, AmgError *error)
     EndWindow;
 
     if (!gui->window_object) {
+        if (gui->icon_iconified) FreeDiskObject(gui->icon_iconified);
+        gui->icon_iconified = NULL;
         FreeLBColumnInfo(gui->columns);
         gui->columns = NULL;
         gui->labels_scroller = NULL;

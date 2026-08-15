@@ -1,7 +1,60 @@
+# AmiGmail Changelog
+
+## 1.5 – 2026-08-15
+
+- Programmversion auf 1.5 aktualisiert
+- echtes ReAction/Workbench-Iconify stabilisiert; AmiGmail verwendet im iconifizierten Zustand das eingebettete `AmiGmail-Iconified.info`
+- periodischer 5-Minuten-Abruf, Gmail-Netzwerk-Worker und `AmiGmailStatus` laufen auch iconifiziert weiter
+- optionaler Benachrichtigungston fuer neue Mails mit Dateiauswahl fuer IFF/8SVX/WAV; 8SVX-Wiedergabe ueber `datatypes.library`/`sound.datatype` bestaetigt
+- Konfigurations-Speichern blockiert die GUI nicht mehr; insbesondere kann ein veraltetes `timer.device`-Signal keinen neuen 5-Minuten-Timer mehr per `WaitIO()` festhalten
+- Speichern lokaler Einstellungen startet den periodischen Timer nur neu, wenn sich die 5-Minuten-Option tatsaechlich geaendert hat
+- bestehende Gmail-Verbindung bleibt bei rein lokalen Konfigurationsaenderungen erhalten
+
+## v55 development fix (config-save freeze / stable iconify)
+
+- Fixed the configuration-save freeze with periodic 5-minute fetching enabled.
+  The timer event loop now calls `WaitIO()` only after `CheckIO()` confirms that
+  the current timer request has actually completed; stale timer signals are
+  cleared explicitly.
+- Saving unrelated account preferences no longer restarts the five-minute timer.
+  It is re-armed only when the `Periodic fetch (5 min.)` checkbox changes.
+- Removed the experimental live Workbench AppIcon switching by unread-mail
+  status. `window.class` documents `WINDOW_Icon` as the icon used for
+  iconification, but does not guarantee replacement of an already visible
+  AppIcon. AmiGmail therefore uses one stable embedded icon while iconified.
+- Only the supplied `AmiGmail-Iconified.info` is embedded for the iconified
+  Workbench state. The normal program icon is no longer duplicated inside the
+  notification/iconify resource.
+- Notification sound playback from v54 is retained unchanged.
+
 # Änderungsprotokoll
+
+### v54 development fix (Reconnect / dynamic AppIcon / sound playback)
+
+- Account settings no longer synchronously stop/restart the network process. Local-only changes such as notification sound, fetch-on-start and the 5-minute toggle keep the existing Gmail connection alive.
+- Network-relevant account changes are applied through a new asynchronous `AMG_NET_RECONFIGURE` worker command, so the ReAction GUI remains responsive while Gmail reconnects.
+- Both supplied Workbench icons are embedded byte-for-byte: normal `AmiGmail.info` (6224 bytes) and `AmiGmail-Iconified.info` (6196 bytes).
+- The iconified Workbench AppIcon now follows the same unread-Inbox state as `AmiGmailStatus`: normal icon at zero unread mails, new-mail icon at one or more unread mails.
+- While iconified, a mail-status transition rebuilds the AppIcon through a hidden `WM_OPEN`/`WM_ICONIFY` cycle, avoiding a visible main-window flash.
+- Notification sound playback now uses an explicit `DTST_FILE` sound DataType source, performs `DTM_PROCLAYOUT`, then calls `DTM_TRIGGER/STM_PLAY` through the classic `DoDTMethod()` varargs ABI.
+- The account dialog consumes the sound completion signal while open and reports immediately whether the selected sound file could be loaded for preview.
+
+### v52 development fix (Iconify / notification sound)
+
+- Fixed the remaining classic GCC pointer-sign warning in the notification sound requester.
+- Iconified Workbench state now prefers the supplied `AmiGmail-Iconified.info`.
+- Notification sound playback now follows the classic `sound.datatype` signal-mask contract (`SDTA_SignalBit`).
+- Playback objects are kept alive until the sound completion signal instead of interpreting the undocumented `DTM_TRIGGER` return value as an error.
+- Selecting an IFF/8SVX/WAV file immediately previews it using the same playback path as real new-mail notifications.
+- The sound requester continues to show `.iff`, `.8svx` and `.wav` case-insensitively.
 
 ## 1.4 – 2026-08-14
 
+- echtes ReAction/Workbench-Iconify-Gadget ergänzt; AmiGmail wird als Workbench-AppIcon abgelegt und lässt sich per Doppelklick wiederherstellen, ohne den Prozess zu beenden
+- periodischer 5-Minuten-Abruf, Netzwerk-Worker, Update-Prüfung und ENV-Mailstatus laufen auch im iconifizierten Zustand weiter; GUI-Modelle werden ohne offenen Intuition-Window-Pointer sicher aktualisiert
+- `mailto:` während AmiGmail iconifiziert ist stellt das Hauptfenster zuerst wieder her und öffnet anschließend das Verfassen-Fenster wie gewohnt im Vordergrund
+- optionale Konfiguration `Benachrichtigungston` / `Notification Sound` mit ASL-Dateiauswahl für IFF/8SVX ergänzt und mit den Kontoeinstellungen gespeichert
+- neuer Mailton wird über `datatypes.library`/`sound.datatype` asynchron abgespielt: einmal pro Abruf mit tatsächlich neuen UIDs, auch im iconifizierten Zustand; bereits vorhandene Mails beim ersten Basisabruf bleiben stumm
 - Fensterzustand korrigiert: window.class-Innenmasse werden getrennt von den aeusseren Intuition-Massen gespeichert, damit Breite und Hoehe pixelgenau wiederhergestellt werden
 - Update-Anzeige im Header als kompakter zweizeiliger Status aufgebaut: transparenter Text `Version 1.4` plus `Aktuelle Version` / `Up to date`; bei neuem Release `Neues Update` / `new Update`
 - deaktiviertes Ghost-/Punktmuster entfernt; der Status verwendet stattdessen `GA_ReadOnly` und einen dezenten duennen Buttonrahmen
@@ -81,3 +134,16 @@
 - gefüllte transparente 5×6-Pixel-Chevrons entsprechen dem gelieferten Vorbild
 - IMAP hält eine serverseitig ermittelte Sonderordner-Tabelle und löst
   `\\Drafts` sowie `\\Spam` vor `SELECT` zum tatsächlichen Gmail-Mailboxnamen auf
+
+### v51 - Sound requester and iconify icon polish
+- Fixed the notification-sound ASL filter: ASLFR_AcceptPattern now receives a pattern tokenized with ParsePatternNoCase(), as required by asl.library.
+- The sound requester now displays .iff, .8svx and .wav files case-insensitively.
+- The iconified Workbench window now prefers PROGDIR:AmiGmail-Iconify.info, falls back to PROGDIR:AmiGmail.info, then to window.class' default icon.
+- The titlebar iconify gadget itself remains the system-provided ReAction/window.class gadget.
+
+### v53 - embedded iconify icon
+- The supplied `AmiGmail-Iconified.info` is now embedded byte-for-byte in the AmiGmail executable.
+- No separate iconify `.info` file is required in `PROGDIR:` or the release archive.
+- AmiGmail materialises the embedded icon only briefly in `T:` so `icon.library` can build the native `DiskObject`, then deletes the temporary file immediately.
+- The normal `AmiGmail.info` remains only as a safety fallback if the embedded icon cannot be loaded.
+

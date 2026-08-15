@@ -49,6 +49,7 @@ typedef struct AmgNetMessage {
     char message_id[256];
     AmgNetAttachment attachments[AMG_MAIL_MAX_ATTACHMENTS];
     size_t attachment_count;
+    AmgAccount account_update;
     AmgBuffer payload;
     AmgError error;
 } AmgNetMessage;
@@ -77,11 +78,42 @@ static int text_fits(const char *text, size_t capacity)
     return !text || strlen(text) < capacity;
 }
 
+static int copy_account_deep(AmgAccount *destination,
+                             const AmgAccount *source, AmgError *error)
+{
+    AmgAccount copy;
+    if (!destination || !source) return AMG_ERR_ARGUMENT;
+    copy = *source;
+    copy.app_password = NULL;
+    copy.refresh_token = NULL;
+    if (amg_account_set_secret(&copy.app_password, source->app_password) != AMG_OK ||
+        amg_account_set_secret(&copy.refresh_token, source->refresh_token) != AMG_OK) {
+        amg_account_clear(&copy);
+        amg_error_set(error, AMG_ERR_MEMORY,
+                      T("Nicht genug Speicher.", "Not enough memory."));
+        return AMG_ERR_MEMORY;
+    }
+    amg_account_clear(destination);
+    *destination = copy;
+    return AMG_OK;
+}
+
+static void free_net_message(AmgNetMessage *message)
+{
+    if (!message) return;
+    amg_account_clear(&message->account_update);
+    amg_buffer_free(&message->payload);
+    free(message);
+}
+
 static const char *network_operation(AmgNetCommandType type)
 {
     switch (type) {
         case AMG_NET_CONNECT:
             return T("IMAP-Verbindung", "IMAP connection");
+        case AMG_NET_RECONFIGURE:
+            return T("Gmail-Verbindung neu konfigurieren",
+                     "reconfigure Gmail connection");
         case AMG_NET_FETCH_LABELS:
             return T("Gmail-Labels abrufen", "fetch Gmail labels");
         case AMG_NET_FETCH_INBOX:
@@ -136,6 +168,40 @@ static void qualify_error(AmgNetCommandType type, int result,
                         "%s failed (code %d).",
                         network_operation(type), result);
     amg_error_set(error, result, message);
+}
+
+static int connect_network_account(AmgNetwork *network,
+                                   AmgImapSession *imap,
+                                   AmgOAuthTokens *tokens,
+                                   AmgError *error)
+{
+    int result = AMG_OK;
+    network->connected = 0;
+    amg_imap_disconnect(imap);
+    amg_oauth_tokens_clear(tokens);
+    if (network->account.auth_mode == AMG_AUTH_OAUTH2) {
+        AmgOAuthConfig config = {
+            AMIGMAIL_OAUTH_CLIENT_ID,
+            AMIGMAIL_OAUTH_CLIENT_SECRET,
+            "",
+            AMIGMAIL_OAUTH_SCOPE
+        };
+        if (!AMIGMAIL_OAUTH_CLIENT_ID[0]) {
+            amg_error_set(
+                error, AMG_ERR_AUTH,
+                T("OAuth-Client-ID ist im Build nicht eingerichtet.",
+                  "OAuth client ID is not configured in this build."));
+            result = AMG_ERR_AUTH;
+        } else {
+            result = amg_oauth_refresh(
+                &config, network->account.refresh_token, tokens, error);
+        }
+    }
+    if (result == AMG_OK)
+        result = amg_imap_connect(
+            imap, &network->account, tokens->access_token, error);
+    if (result == AMG_OK) network->connected = 1;
+    return result;
 }
 
 static void finish_message(AmgNetMessage *message, int result,
@@ -250,31 +316,16 @@ static void network_worker(void)
             }
             switch (message->type) {
                 case AMG_NET_CONNECT:
-                    network->connected = 0;
-                    amg_imap_disconnect(&imap);
-                    if (network->account.auth_mode == AMG_AUTH_OAUTH2) {
-                        AmgOAuthConfig config = {
-                            AMIGMAIL_OAUTH_CLIENT_ID,
-                            AMIGMAIL_OAUTH_CLIENT_SECRET,
-                            "",
-                            AMIGMAIL_OAUTH_SCOPE
-                        };
-                        if (!AMIGMAIL_OAUTH_CLIENT_ID[0]) {
-                            amg_error_set(
-                                &error, AMG_ERR_AUTH,
-                                T("OAuth-Client-ID ist im Build nicht eingerichtet.",
-                                  "OAuth client ID is not configured in this build."));
-                            result = AMG_ERR_AUTH;
-                        } else {
-                            result = amg_oauth_refresh(
-                                &config, network->account.refresh_token, &tokens,
-                                &error);
-                        }
-                    }
+                    result = connect_network_account(
+                        network, &imap, &tokens, &error);
+                    break;
+
+                case AMG_NET_RECONFIGURE:
+                    result = copy_account_deep(
+                        &network->account, &message->account_update, &error);
                     if (result == AMG_OK)
-                        result = amg_imap_connect(
-                            &imap, &network->account, tokens.access_token, &error);
-                    if (result == AMG_OK) network->connected = 1;
+                        result = connect_network_account(
+                            network, &imap, &tokens, &error);
                     break;
 
                 case AMG_NET_FETCH_LABELS:
@@ -465,8 +516,9 @@ static void network_worker(void)
                     break;
             }
             if ((result == AMG_ERR_IO || result == AMG_ERR_TLS) &&
-                message->type >= AMG_NET_CONNECT &&
-                message->type <= AMG_NET_SEND_DRAFT)
+                ((message->type >= AMG_NET_CONNECT &&
+                  message->type <= AMG_NET_SEND_DRAFT) ||
+                 message->type == AMG_NET_RECONFIGURE))
                 network->connected = 0;
             qualify_error(message->type, result, &error);
             finish_message(message, result, &error);
@@ -512,19 +564,8 @@ int amg_network_start(AmgNetwork *network, const AmgAccount *account,
                       T("Message Ports konnten nicht erstellt werden.", "Message ports could not be created."));
         return AMG_ERR_MEMORY;
     }
-    amg_account_clear(&network->account);
-    network->account = *account;
-    network->account.app_password = NULL;
-    network->account.refresh_token = NULL;
-    if (amg_account_set_secret(&network->account.app_password,
-                               account->app_password) != AMG_OK ||
-        amg_account_set_secret(&network->account.refresh_token,
-                               account->refresh_token) != AMG_OK) {
-        amg_account_clear(&network->account);
-        amg_account_init(&network->account);
-        amg_error_set(error, AMG_ERR_MEMORY, T("Nicht genug Speicher.", "Not enough memory."));
+    if (copy_account_deep(&network->account, account, error) != AMG_OK)
         return AMG_ERR_MEMORY;
-    }
     network->worker_ready = 0;
     network->connected = 0;
     starting_network = network;
@@ -553,6 +594,7 @@ static AmgNetMessage *new_message(AmgNetwork *network,
     message->message.mn_ReplyPort = network->responses;
     message->message.mn_Length = sizeof(*message);
     message->type = type;
+    amg_account_init(&message->account_update);
     amg_buffer_init(&message->payload);
     return message;
 }
@@ -571,6 +613,26 @@ int amg_network_request(AmgNetwork *network, AmgNetCommandType type,
     message->uid = uid;
     copy_text(message->argument1, sizeof(message->argument1), argument1);
     copy_text(message->argument2, sizeof(message->argument2), argument2);
+    PutMsg(network->commands, (struct Message *)message);
+    return AMG_OK;
+}
+
+int amg_network_request_reconfigure(AmgNetwork *network,
+                                    const AmgAccount *account,
+                                    AmgError *error)
+{
+    AmgNetMessage *message;
+    if (!network || !account || !network->running) return AMG_ERR_ARGUMENT;
+    message = new_message(network, AMG_NET_RECONFIGURE);
+    if (!message) {
+        amg_error_set(error, AMG_ERR_MEMORY,
+                      T("Nicht genug Speicher.", "Not enough memory."));
+        return AMG_ERR_MEMORY;
+    }
+    if (copy_account_deep(&message->account_update, account, error) != AMG_OK) {
+        free_net_message(message);
+        return AMG_ERR_MEMORY;
+    }
     PutMsg(network->commands, (struct Message *)message);
     return AMG_OK;
 }
@@ -746,8 +808,7 @@ int amg_network_poll(AmgNetwork *network, AmgNetworkEvent *event)
     message->payload.data = NULL;
     message->payload.length = 0;
     message->payload.capacity = 0;
-    amg_buffer_free(&message->payload);
-    free(message);
+    free_net_message(message);
     return 1;
 }
 
@@ -789,8 +850,7 @@ void amg_network_stop(AmgNetwork *network)
         AmgNetMessage *message =
             (AmgNetMessage *)GetMsg(network->responses);
         if (!message) break;
-        amg_buffer_free(&message->payload);
-        free(message);
+        free_net_message(message);
     }
     network->process = NULL;
     network->connected = 0;
@@ -854,6 +914,16 @@ int amg_network_request(AmgNetwork *network, AmgNetCommandType type,
     (void)uid;
     (void)argument1;
     (void)argument2;
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    return AMG_ERR_UNSUPPORTED;
+}
+
+int amg_network_request_reconfigure(AmgNetwork *network,
+                                    const AmgAccount *account,
+                                    AmgError *error)
+{
+    (void)network;
+    (void)account;
     amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }

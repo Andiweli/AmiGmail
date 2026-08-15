@@ -18,7 +18,9 @@
 #include <gadgets/string.h>
 #include <intuition/classes.h>
 #include <intuition/intuition.h>
+#include <libraries/asl.h>
 #include <libraries/gadtools.h>
+#include <proto/asl.h>
 #include <proto/button.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
@@ -57,6 +59,9 @@ enum AccountGadgetId {
     GID_ACCOUNT_FETCH_DAYS,
     GID_ACCOUNT_FETCH_ON_START,
     GID_ACCOUNT_PERIODIC_FETCH,
+    GID_ACCOUNT_NOTIFICATION_SOUND,
+    GID_ACCOUNT_NOTIFICATION_SOUND_PATH,
+    GID_ACCOUNT_NOTIFICATION_SOUND_SELECT,
     GID_ACCOUNT_STATUS,
     GID_ACCOUNT_UNLOCK,
     GID_ACCOUNT_SAVE,
@@ -110,13 +115,132 @@ int account_is_locked(const AmgAccount *account)
 
 static void replace_account(AmgGui *gui, AmgAccount *replacement)
 {
-    amg_network_stop(gui->network);
-    gui->mail_network_started = 0;
-    gui->periodic_check_pending = 0;
     amg_account_clear(gui->account);
     *gui->account = *replacement;
     replacement->app_password = NULL;
     replacement->refresh_token = NULL;
+}
+
+static int nullable_text_equal(const char *left, const char *right)
+{
+    if (!left) left = "";
+    if (!right) right = "";
+    return strcmp(left, right) == 0;
+}
+
+/* Only fields copied into the network worker matter here. Pure GUI/runtime
+ * preferences (periodic fetch toggle, fetch-on-start and notification sound)
+ * must not tear down a healthy Gmail connection. */
+static int account_network_settings_equal(const AmgAccount *left,
+                                          const AmgAccount *right)
+{
+    if (!left || !right) return 0;
+    return !strcmp(left->display_name, right->display_name) &&
+           !strcmp(left->email, right->email) &&
+           left->auth_mode == right->auth_mode &&
+           !strcmp(left->imap_host, right->imap_host) &&
+           left->imap_port == right->imap_port &&
+           !strcmp(left->smtp_host, right->smtp_host) &&
+           left->smtp_port == right->smtp_port &&
+           left->smtp_starttls == right->smtp_starttls &&
+           left->fetch_days == right->fetch_days &&
+           nullable_text_equal(left->app_password, right->app_password) &&
+           nullable_text_equal(left->refresh_token, right->refresh_token);
+}
+
+static void notification_sound_initial_parts(const char *path,
+                                             char *drawer,
+                                             size_t drawer_capacity,
+                                             char *file,
+                                             size_t file_capacity)
+{
+    STRPTR part;
+    if (!drawer || !drawer_capacity || !file || !file_capacity) return;
+    drawer[0] = 0;
+    file[0] = 0;
+    if (!path || !*path) return;
+    strncpy(drawer, path, drawer_capacity - 1U);
+    drawer[drawer_capacity - 1U] = 0;
+    part = FilePart((STRPTR)drawer);
+    if (part && *part) {
+        strncpy(file, (const char *)part, file_capacity - 1U);
+        file[file_capacity - 1U] = 0;
+        *part = 0;
+    }
+}
+
+static void choose_notification_sound(AmgGui *gui,
+                                      struct Window *window,
+                                      struct Gadget *path_gadget,
+                                      struct Gadget *enabled_gadget,
+                                      struct Gadget *status_gadget)
+{
+    struct FileRequester *requester;
+    char drawer[512];
+    char file[256];
+    char selected[512];
+    char accept_pattern[96];
+    LONG pattern_result;
+    if (!path_gadget) return;
+
+    /* ASLFR_AcceptPattern expects the tokenized output of
+     * ParsePatternNoCase(), not the human-readable DOS pattern itself.
+     * Passing the source pattern directly caused valid .iff files to be
+     * filtered out on classic ASL. */
+    pattern_result = ParsePatternNoCase(
+        (CONST_STRPTR)"#?.(iff|8svx|wav)",
+        (STRPTR)accept_pattern, (LONG)sizeof(accept_pattern));
+
+    notification_sound_initial_parts(
+        string_text(path_gadget), drawer, sizeof(drawer), file, sizeof(file));
+    requester = AllocAslRequestTags(
+        ASL_FileRequest,
+        ASLFR_TitleText,
+            (ULONG)(uintptr_t)T("Benachrichtigungston ausw\344hlen",
+                                "Select notification sound"),
+        ASLFR_Window, (ULONG)(uintptr_t)window,
+        ASLFR_SleepWindow, TRUE,
+        ASLFR_RejectIcons, TRUE,
+        pattern_result >= 0 ? ASLFR_AcceptPattern : TAG_IGNORE,
+            (ULONG)(uintptr_t)accept_pattern,
+        drawer[0] ? ASLFR_InitialDrawer : TAG_IGNORE,
+            (ULONG)(uintptr_t)drawer,
+        file[0] ? ASLFR_InitialFile : TAG_IGNORE,
+            (ULONG)(uintptr_t)file,
+        TAG_DONE);
+    if (!requester) return;
+
+    if (AslRequest(requester, NULL)) {
+        strncpy(selected, requester->fr_Drawer ? (const char *)requester->fr_Drawer : "",
+                sizeof(selected) - 1U);
+        selected[sizeof(selected) - 1U] = 0;
+        if (requester->fr_File && requester->fr_File[0] &&
+            AddPart((STRPTR)selected, (CONST_STRPTR)requester->fr_File,
+                    (LONG)sizeof(selected))) {
+            set_string(path_gadget, window, selected);
+            /* Immediate preview: the same DataTypes playback path is used
+             * later for real new-mail notifications. */
+            if (gui_notify_preview_sound(gui, selected)) {
+                if (status_gadget)
+                    set_string(status_gadget, window,
+                               T("Ton wird probeweise abgespielt...",
+                                 "Playing sound preview..."));
+            } else if (status_gadget) {
+                set_string(status_gadget, window,
+                           T("Tondatei konnte nicht geladen/abgespielt werden.",
+                             "Sound file could not be loaded/played."));
+            }
+            if (enabled_gadget) {
+                if (window)
+                    SetGadgetAttrs(enabled_gadget, window, NULL,
+                                   GA_Selected, TRUE, TAG_DONE);
+                else
+                    SetAttrs((Object *)enabled_gadget,
+                             GA_Selected, TRUE, TAG_DONE);
+            }
+        }
+    }
+    FreeAslRequest(requester);
 }
 
 int account_dialog(AmgGui *gui, AmgError *error)
@@ -126,20 +250,19 @@ int account_dialog(AmgGui *gui, AmgError *error)
     struct Gadget *name_gadget, *email_gadget, *app_password_gadget;
     struct Gadget *master_password_gadget, *fetch_days_gadget;
     struct Gadget *fetch_on_start_gadget, *periodic_fetch_gadget;
+    struct Gadget *notification_sound_gadget, *notification_sound_path_gadget;
     struct Gadget *dialog_status;
     ULONG signal_mask;
+    ULONG notify_signal;
     ULONG account_width = 375UL;
     ULONG hint_gap = 4UL;
     char remembered_master[128];
     char fetch_days_text[16];
     int done = 0, changed = 0;
-    int restart_network = gui->mail_network_started &&
-                          amg_network_is_running(gui->network);
-
-    if (restart_network) {
-        amg_network_stop(gui->network);
-        gui->periodic_check_pending = 0;
-    }
+    int network_settings_changed = 0;
+    int periodic_fetch_changed = 0;
+    int network_was_running = gui->mail_network_started &&
+                              amg_network_is_running(gui->network);
 
     name_gadget = NULL;
     email_gadget = NULL;
@@ -148,6 +271,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
     fetch_days_gadget = NULL;
     fetch_on_start_gadget = NULL;
     periodic_fetch_gadget = NULL;
+    notification_sound_gadget = NULL;
+    notification_sound_path_gadget = NULL;
     dialog_status = NULL;
     remembered_master[0] = 0;
     snprintf(fetch_days_text, sizeof(fetch_days_text), "%u",
@@ -384,6 +509,74 @@ int account_dialog(AmgGui *gui, AmgError *error)
                 EndObject,
                 CHILD_WeightedHeight, 0,
 
+                LAYOUT_AddChild, HGroupObject,
+                    LAYOUT_SpaceOuter, FALSE,
+                    LAYOUT_SpaceInner, FALSE,
+                EndObject,
+                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
+                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
+                CHILD_WeightedHeight, 0,
+
+                LAYOUT_AddChild, HGroupObject,
+                    LAYOUT_SpaceInner, TRUE,
+                    LAYOUT_AddChild, HGroupObject,
+                        LAYOUT_SpaceOuter, FALSE,
+                        LAYOUT_SpaceInner, FALSE,
+                    EndObject,
+                    CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
+                    CHILD_WeightedWidth, 0,
+                    LAYOUT_AddChild,
+                        notification_sound_gadget =
+                            (struct Gadget *)ButtonObject,
+                            GA_ID, GID_ACCOUNT_NOTIFICATION_SOUND,
+                            GA_RelVerify, TRUE,
+                            GA_Selected,
+                                gui->account->notification_sound ? TRUE : FALSE,
+                            BUTTON_AutoButton, BAG_CHECKBOX,
+                            BUTTON_PushButton, TRUE,
+                        EndObject,
+                    CHILD_MinWidth, 24,
+                    CHILD_MaxWidth, 24,
+                    CHILD_WeightedWidth, 0,
+                    LAYOUT_AddChild, static_text_label(
+                        T("Benachrichtigungston", "Notification Sound")),
+                EndObject,
+                CHILD_WeightedHeight, 0,
+
+                LAYOUT_AddChild, HGroupObject,
+                    LAYOUT_SpaceOuter, FALSE,
+                    LAYOUT_SpaceInner, FALSE,
+                EndObject,
+                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
+                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
+                CHILD_WeightedHeight, 0,
+
+                LAYOUT_AddChild, HGroupObject,
+                    LAYOUT_SpaceInner, TRUE,
+                    LAYOUT_AddChild, static_text_label(
+                        T("Tondatei:", "Sound file:")),
+                    CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
+                    CHILD_WeightedWidth, 0,
+                    LAYOUT_AddChild,
+                        notification_sound_path_gadget =
+                            (struct Gadget *)StringObject,
+                            GA_ID, GID_ACCOUNT_NOTIFICATION_SOUND_PATH,
+                            GA_ReadOnly, TRUE,
+                            STRINGA_MaxChars, 511,
+                            STRINGA_TextVal,
+                                gui->account->notification_sound_path,
+                        EndObject,
+                    LAYOUT_AddChild, ButtonObject,
+                        GA_ID, GID_ACCOUNT_NOTIFICATION_SOUND_SELECT,
+                        GA_RelVerify, TRUE,
+                        GA_Text, "...",
+                    EndObject,
+                    CHILD_MinWidth, 32,
+                    CHILD_MaxWidth, 32,
+                    CHILD_WeightedWidth, 0,
+                EndObject,
+                CHILD_WeightedHeight, 0,
+
             EndObject,
             CHILD_WeightedHeight, 0,
 
@@ -454,9 +647,12 @@ int account_dialog(AmgGui *gui, AmgError *error)
         return 0;
     }
     GetAttr(WINDOW_SigMask, dialog, &signal_mask);
+    notify_signal = gui_notify_signal_mask(gui);
 
     while (!done) {
-        ULONG signals = Wait(signal_mask | SIGBREAKF_CTRL_C);
+        ULONG signals = Wait(signal_mask | notify_signal | SIGBREAKF_CTRL_C);
+        if (notify_signal && (signals & notify_signal))
+            gui_notify_handle_signal(gui);
         if (signals & SIGBREAKF_CTRL_C) done = 1;
         if (signals & signal_mask) {
             ULONG result;
@@ -493,6 +689,12 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                 done = 1;
                                 break;
 
+                            case GID_ACCOUNT_NOTIFICATION_SOUND_SELECT:
+                                choose_notification_sound(
+                                    gui, window, notification_sound_path_gadget,
+                                    notification_sound_gadget, dialog_status);
+                                break;
+
                             case GID_ACCOUNT_UNLOCK:
                             {
                                 AmgAccount loaded;
@@ -510,6 +712,12 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                     if (amg_storage_save_account(
                                             ACCOUNT_PATH, &loaded, master,
                                             error) == AMG_OK) {
+                                        network_settings_changed =
+                                            !account_network_settings_equal(
+                                                gui->account, &loaded);
+                                        periodic_fetch_changed =
+                                            gui->account->periodic_fetch !=
+                                            loaded.periodic_fetch;
                                         replace_account(gui, &loaded);
                                         changed = 1;
                                         done = 1;
@@ -535,6 +743,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                 unsigned long fetch_days;
                                 ULONG fetch_on_start = 0;
                                 ULONG periodic_fetch = 0;
+                                ULONG notification_sound = 0;
                                 const char *master =
                                     string_text(master_password_gadget);
                                 if (!*master) {
@@ -578,6 +787,40 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                         &periodic_fetch);
                                 candidate.periodic_fetch =
                                     periodic_fetch ? 1 : 0;
+                                GetAttr(GA_Selected,
+                                        (Object *)notification_sound_gadget,
+                                        &notification_sound);
+                                candidate.notification_sound =
+                                    notification_sound ? 1 : 0;
+                                strncpy(candidate.notification_sound_path,
+                                        string_text(
+                                            notification_sound_path_gadget),
+                                        sizeof(candidate.notification_sound_path) - 1U);
+                                candidate.notification_sound_path[
+                                    sizeof(candidate.notification_sound_path) - 1U] = 0;
+                                if (candidate.notification_sound) {
+                                    BPTR sound_lock;
+                                    if (!candidate.notification_sound_path[0]) {
+                                        amg_account_clear(&candidate);
+                                        set_string(
+                                            dialog_status, window,
+                                            T("Bitte eine IFF/8SVX/WAV-Tondatei ausw\344hlen.",
+                                              "Please select an IFF/8SVX/WAV sound file."));
+                                        break;
+                                    }
+                                    sound_lock = Lock(
+                                        (CONST_STRPTR)candidate.notification_sound_path,
+                                        ACCESS_READ);
+                                    if (!sound_lock) {
+                                        amg_account_clear(&candidate);
+                                        set_string(
+                                            dialog_status, window,
+                                            T("Die gew\344hlte Tondatei wurde nicht gefunden.",
+                                              "The selected sound file was not found."));
+                                        break;
+                                    }
+                                    UnLock(sound_lock);
+                                }
                                 normalize_app_password(
                                     string_text(app_password_gadget),
                                     normalized_password);
@@ -605,6 +848,12 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                     amg_account_clear(&candidate);
                                     break;
                                 }
+                                network_settings_changed =
+                                    !account_network_settings_equal(
+                                        gui->account, &candidate);
+                                periodic_fetch_changed =
+                                    gui->account->periodic_fetch !=
+                                    candidate.periodic_fetch;
                                 replace_account(gui, &candidate);
                                 changed = 1;
                                 done = 1;
@@ -618,21 +867,27 @@ int account_dialog(AmgGui *gui, AmgError *error)
     DisposeObject(dialog);
     amg_secure_clear(remembered_master, sizeof(remembered_master));
     if (changed) {
-        periodic_timer_restart(gui);
+        /* The five-minute timer only needs to be touched when its enable
+         * state actually changed. Restarting it for unrelated settings (for
+         * example the notification sound) risks carrying a stale timer
+         * signal into the main event loop. */
+        if (periodic_fetch_changed)
+            periodic_timer_restart(gui);
         status_local(gui, T("Konto ist eingerichtet und entsperrt.",
                             "Account is configured and unlocked."));
     }
-    if (restart_network && !account_is_locked(gui->account)) {
-        int result = amg_network_start(gui->network, gui->account, error);
+    if (changed && network_was_running && network_settings_changed &&
+        !account_is_locked(gui->account)) {
+        int result = amg_network_request_reconfigure(
+            gui->network, gui->account, error);
         if (result == AMG_OK) {
-            gui->mail_network_started = 1;
-            result = amg_network_request(gui->network, AMG_NET_CONNECT, 0,
-                                         NULL, NULL, error);
-        }
-        if (result == AMG_OK)
-            status_local(gui, T("Verbinde erneut mit Gmail...", "Reconnecting to Gmail..."));
-        else
+            gui->network_reconfigure_pending = 1;
+            status_local(gui,
+                T("Verbinde erneut mit Gmail...",
+                  "Reconnecting to Gmail..."));
+        } else {
             status_utf8(gui, error->message);
+        }
     }
     return changed;
 }

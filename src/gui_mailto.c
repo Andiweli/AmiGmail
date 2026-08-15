@@ -47,6 +47,12 @@ int open_mailto_compose(AmgGui *gui, const char *url, AmgError *error)
     int result = AMG_OK;
 
     if (!gui || !url) return AMG_ERR_ARGUMENT;
+    if (gui->iconified && !gui_uniconify(gui)) {
+        amg_error_set(error, AMG_ERR_IO,
+                      T("AmiGmail-Fenster konnte nicht wiederhergestellt werden.",
+                        "AmiGmail window could not be restored."));
+        return AMG_ERR_IO;
+    }
     if (account_is_locked(gui->account)) {
         status_local(gui,
             T("mailto:-Link wartet auf ein entsperrtes Gmail-Konto.",
@@ -104,6 +110,11 @@ void handle_mailto_requests(AmgGui *gui, AmgMailtoServer *server,
     char *url = NULL;
     if (!gui || !server) return;
     while (amg_mailto_server_receive(server, &url)) {
+        if (gui->iconified && !gui_uniconify(gui)) {
+            free(url);
+            url = NULL;
+            continue;
+        }
         if (account_is_locked(gui->account)) {
             (void)account_dialog(gui, error);
             draw_window_overlays(gui);

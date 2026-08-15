@@ -175,7 +175,7 @@ void gui_state_set_mail_status_inactive(void)
     mail_status_shutdown_saved = 1;
 }
 
-static void sync_mail_status(const AmgGui *gui)
+static void sync_mail_status(AmgGui *gui)
 {
     const char *value;
     if (!gui || !gui->inbox_unseen_known) {

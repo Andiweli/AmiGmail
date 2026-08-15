@@ -265,10 +265,16 @@ void set_preview_local(AmgGui *gui, const char *local)
         amg_buffer_terminate(&styled) == AMG_OK)
         contents = (const char *)styled.data;
 
-    SetGadgetAttrs(gui->preview_gadget, gui->window, NULL,
-                   GA_TEXTEDITOR_Contents, (ULONG)(uintptr_t)contents,
-                   GA_TEXTEDITOR_Prop_First, 0,
-                   TAG_DONE);
+    if (gui->window)
+        SetGadgetAttrs(gui->preview_gadget, gui->window, NULL,
+                       GA_TEXTEDITOR_Contents, (ULONG)(uintptr_t)contents,
+                       GA_TEXTEDITOR_Prop_First, 0,
+                       TAG_DONE);
+    else
+        SetAttrs((Object *)gui->preview_gadget,
+                 GA_TEXTEDITOR_Contents, (ULONG)(uintptr_t)contents,
+                 GA_TEXTEDITOR_Prop_First, 0,
+                 TAG_DONE);
     sync_preview_scroller(gui, 1);
     amg_buffer_free(&styled);
 }
@@ -371,11 +377,17 @@ int display_message_payload(AmgGui *gui, const unsigned char *payload,
 
 static void set_attachment_button_enabled(AmgGui *gui, int enabled)
 {
-    if (!gui || !gui->save_attachments_gadget || !gui->window) return;
-    SetGadgetAttrs(gui->save_attachments_gadget, gui->window, NULL,
-                   GA_Disabled, enabled ? FALSE : TRUE,
-                   TAG_DONE);
-    RefreshGList(gui->save_attachments_gadget, gui->window, NULL, 1);
+    if (!gui || !gui->save_attachments_gadget) return;
+    if (gui->window) {
+        SetGadgetAttrs(gui->save_attachments_gadget, gui->window, NULL,
+                       GA_Disabled, enabled ? FALSE : TRUE,
+                       TAG_DONE);
+        RefreshGList(gui->save_attachments_gadget, gui->window, NULL, 1);
+    } else {
+        SetAttrs((Object *)gui->save_attachments_gadget,
+                 GA_Disabled, enabled ? FALSE : TRUE,
+                 TAG_DONE);
+    }
 }
 
 void clear_current_message_payload(AmgGui *gui)

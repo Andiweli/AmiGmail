@@ -1,6 +1,8 @@
 #include "gui_internal.h"
 #include "i18n.h"
 
+#include <stdint.h>
+
 #if AMIGMAIL_AMIGA
 
 #include <clib/alib_protos.h>
@@ -16,6 +18,12 @@
 #define GUI_PERIODIC_FETCH_SECONDS 300UL
 #define T(de, en) amg_tr((de), (en))
 
+static void periodic_timer_clear_signal(AmgGui *gui)
+{
+    if (!gui || !gui->periodic_timer_port) return;
+    SetSignal(0UL, 1UL << gui->periodic_timer_port->mp_SigBit);
+}
+
 static void periodic_timer_disarm(AmgGui *gui)
 {
     if (!gui || !gui->periodic_timer_request ||
@@ -25,6 +33,10 @@ static void periodic_timer_disarm(AmgGui *gui)
         AbortIO((struct IORequest *)gui->periodic_timer_request);
     WaitIO((struct IORequest *)gui->periodic_timer_request);
     gui->periodic_timer_pending = 0;
+    /* AbortIO/WaitIO may leave the task signal set. Clear it before a
+     * replacement request is armed so the main loop cannot mistake a stale
+     * completion for the new five-minute timer. */
+    periodic_timer_clear_signal(gui);
 }
 
 static void periodic_timer_arm(AmgGui *gui)
@@ -103,10 +115,51 @@ static ULONG periodic_timer_signal_mask(const AmgGui *gui)
     return 1UL << gui->periodic_timer_port->mp_SigBit;
 }
 
+static ULONG app_port_signal_mask(const AmgGui *gui)
+{
+    if (!gui || !gui->app_port) return 0UL;
+    return 1UL << gui->app_port->mp_SigBit;
+}
+
+/* window.class documents WINDOW_Icon as the icon used when WM_ICONIFY
+ * creates the Workbench icon. Replacing an already visible AppIcon is not
+ * part of the documented contract, so AmiGmail deliberately uses one fixed
+ * embedded icon for the whole iconified lifetime. */
+
+void gui_iconify(AmgGui *gui)
+{
+    ULONG window_value = 0UL;
+    if (!gui || !gui->window_object || !gui->window || gui->iconified)
+        return;
+
+    /* Save the last visible geometry before WM_ICONIFY closes the real
+     * Intuition window. WINDOW_Window is invalid after iconification. */
+    gui_state_save_window(gui);
+    (void)DoMethod(gui->window_object, WM_ICONIFY);
+    GetAttr(WINDOW_Window, gui->window_object, &window_value);
+    gui->window = (struct Window *)(uintptr_t)window_value;
+    gui->iconified = gui->window ? 0 : 1;
+}
+
+int gui_uniconify(AmgGui *gui)
+{
+    struct Window *window;
+    if (!gui || !gui->window_object) return 0;
+    if (gui->window && !gui->iconified) return 1;
+
+    SetAttrs(gui->window_object, WA_Hidden, FALSE, TAG_DONE);
+    window = (struct Window *)(uintptr_t)
+        DoMethod(gui->window_object, WM_OPEN);
+    if (!window) return 0;
+    gui->window = window;
+    gui->iconified = 0;
+    draw_window_overlays(gui);
+    return 1;
+}
+
 int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
                 const char *startup_mailto, AmgError *error)
 {
-    ULONG window_signal;
     ULONG mailto_signal;
     if (!gui) return AMG_ERR_ARGUMENT;
     gui->window = RA_OpenWindow(gui->window_object);
@@ -115,10 +168,10 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
                       T("Workbench-Fenster konnte nicht ge\303\266ffnet werden.", "Workbench window could not be opened."));
         return AMG_ERR_IO;
     }
+    gui->iconified = 0;
     if (!gui->window_state_valid)
         center_window_on_screen(gui->window);
     draw_window_overlays(gui);
-    GetAttr(WINDOW_SigMask, gui->window_object, &window_signal);
     mailto_signal = amg_mailto_server_signal_mask(mailto_server);
     gui->running = 1;
     gui->preview_url_signal_task = FindTask(NULL);
@@ -128,6 +181,7 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
             1UL << (ULONG)gui->preview_url_signal_bit;
     else
         gui->preview_url_signal_mask = 0;
+    (void)gui_notify_init(gui);
 
     if (account_is_locked(gui->account)) {
         account_dialog(gui, error);
@@ -155,11 +209,18 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
               "mailto: link cancelled: Gmail account is locked."));
 
     while (gui->running) {
+        ULONG window_signal = 0UL;
+        ULONG app_signal = app_port_signal_mask(gui);
         ULONG network_signal = amg_network_signal_mask(gui->network);
         ULONG timer_signal = periodic_timer_signal_mask(gui);
-        ULONG signals = Wait(window_signal | network_signal | timer_signal |
-                             mailto_signal | gui->preview_url_signal_mask |
-                             SIGBREAKF_CTRL_C);
+        ULONG notify_signal = gui_notify_signal_mask(gui);
+        ULONG signals;
+
+        GetAttr(WINDOW_SigMask, gui->window_object, &window_signal);
+        signals = Wait(window_signal | app_signal | network_signal |
+                       timer_signal | mailto_signal |
+                       gui->preview_url_signal_mask | notify_signal |
+                       SIGBREAKF_CTRL_C);
         if (signals & SIGBREAKF_CTRL_C) gui->running = 0;
         if (network_signal && (signals & network_signal)) {
             handle_network(gui);
@@ -170,20 +231,41 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
             draw_window_overlays(gui);
         }
         if (timer_signal && (signals & timer_signal)) {
-            if (gui->periodic_timer_pending) {
+            /* Never call WaitIO merely because the task signal is set. A
+             * restarted timer can inherit a stale signal from the previous
+             * request; waiting on the new request here would freeze the GUI
+             * until the full five-minute interval expires. */
+            if (gui->periodic_timer_pending &&
+                CheckIO((struct IORequest *)gui->periodic_timer_request)) {
                 WaitIO((struct IORequest *)gui->periodic_timer_request);
                 gui->periodic_timer_pending = 0;
+                periodic_timer_clear_signal(gui);
+                periodic_timer_arm(gui);
+                periodic_fetch_mail(gui, error);
+            } else {
+                periodic_timer_clear_signal(gui);
             }
-            periodic_timer_arm(gui);
-            periodic_fetch_mail(gui, error);
         }
-        if (signals & window_signal) {
+        if (notify_signal && (signals & notify_signal))
+            gui_notify_handle_signal(gui);
+
+        /* AppIcon double-clicks arrive through WINDOW_AppPort.  Feed both the
+         * normal IDCMP and AppPort signals to window.class so it can return
+         * WMHI_UNICONIFY. */
+        if ((window_signal && (signals & window_signal)) ||
+            (app_signal && (signals & app_signal))) {
             ULONG result;
             while ((result = RA_HandleInput(gui->window_object, NULL)) !=
                    WMHI_LASTMSG) {
                 switch (result & WMHI_CLASSMASK) {
                     case WMHI_CLOSEWINDOW:
                         gui->running = 0;
+                        break;
+                    case WMHI_ICONIFY:
+                        gui_iconify(gui);
+                        break;
+                    case WMHI_UNICONIFY:
+                        (void)gui_uniconify(gui);
                         break;
                     case WMHI_GADGETUP:
                         handle_main_gadget(
@@ -209,6 +291,7 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
         gui->preview_url_signal_mask = 0;
     }
     gui->preview_url_signal_task = NULL;
+    gui_notify_cleanup(gui);
     periodic_timer_cleanup(gui);
     gui_state_save_window(gui);
     gui_state_set_mail_status_inactive();

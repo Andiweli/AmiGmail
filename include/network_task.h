@@ -7,6 +7,7 @@
 typedef enum AmgNetCommandType {
     AMG_NET_STOP = 0,
     AMG_NET_CONNECT,
+    AMG_NET_RECONFIGURE,
     AMG_NET_FETCH_LABELS,
     AMG_NET_FETCH_INBOX,
     AMG_NET_CHECK_INBOX,
@@ -48,6 +49,9 @@ unsigned long amg_network_signal_mask(const AmgNetwork *network);
 int amg_network_request(AmgNetwork *network, AmgNetCommandType type,
                         unsigned long uid, const char *argument1,
                         const char *argument2, AmgError *error);
+int amg_network_request_reconfigure(AmgNetwork *network,
+                                    const AmgAccount *account,
+                                    AmgError *error);
 int amg_network_request_reply(AmgNetwork *network, const AmgReplyDraft *draft,
                               AmgError *error);
 int amg_network_request_mail(AmgNetwork *network, const AmgMailDraft *draft,

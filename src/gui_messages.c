@@ -243,14 +243,23 @@ static void attach_messages_default_date_sort(AmgGui *gui)
             LBCIA_SortDirection, LBMSORT_REVERSE,
             TAG_DONE);
     }
-    SetGadgetAttrs(
-        gui->messages_gadget, gui->window, NULL,
-        LISTBROWSER_ColumnInfo, (ULONG)(uintptr_t)gui->columns,
-        LISTBROWSER_Labels, (ULONG)(uintptr_t)&gui->messages_list,
-        LISTBROWSER_Selected, (ULONG)~0UL,
-        LISTBROWSER_Top, 0,
-        LISTBROWSER_SortColumn, 3,
-        TAG_DONE);
+    if (gui->window)
+        SetGadgetAttrs(
+            gui->messages_gadget, gui->window, NULL,
+            LISTBROWSER_ColumnInfo, (ULONG)(uintptr_t)gui->columns,
+            LISTBROWSER_Labels, (ULONG)(uintptr_t)&gui->messages_list,
+            LISTBROWSER_Selected, (ULONG)~0UL,
+            LISTBROWSER_Top, 0,
+            LISTBROWSER_SortColumn, 3,
+            TAG_DONE);
+    else
+        SetAttrs((Object *)gui->messages_gadget,
+            LISTBROWSER_ColumnInfo, (ULONG)(uintptr_t)gui->columns,
+            LISTBROWSER_Labels, (ULONG)(uintptr_t)&gui->messages_list,
+            LISTBROWSER_Selected, (ULONG)~0UL,
+            LISTBROWSER_Top, 0,
+            LISTBROWSER_SortColumn, 3,
+            TAG_DONE);
 }
 
 
@@ -501,7 +510,7 @@ size_t merge_new_messages_from_payload(AmgGui *gui,
     struct Node *node, *next;
 
     if (parse_error) *parse_error = 0;
-    if (!gui || !gui->messages_gadget || !gui->window) return 0U;
+    if (!gui || !gui->messages_gadget) return 0U;
     selected_uid = gui->active_message_uid;
     GetAttr(LISTBROWSER_Top, (Object *)gui->messages_gadget, &old_top);
     detach_listbrowser(gui->messages_gadget, gui->window);
@@ -573,15 +582,26 @@ size_t merge_new_messages_from_payload(AmgGui *gui,
                              LBCIA_SortDirection, LBMSORT_REVERSE,
                              TAG_DONE);
     }
-    SetGadgetAttrs(gui->messages_gadget, gui->window, NULL,
-                   LISTBROWSER_ColumnInfo,
-                       (ULONG)(uintptr_t)gui->columns,
-                   LISTBROWSER_Labels,
-                       (ULONG)(uintptr_t)&gui->messages_list,
-                   LISTBROWSER_Selected, (ULONG)~0UL,
-                   LISTBROWSER_Top, old_top ? old_top + (ULONG)added : 0UL,
-                   LISTBROWSER_SortColumn, 3,
-                   TAG_DONE);
+    if (gui->window)
+        SetGadgetAttrs(gui->messages_gadget, gui->window, NULL,
+                       LISTBROWSER_ColumnInfo,
+                           (ULONG)(uintptr_t)gui->columns,
+                       LISTBROWSER_Labels,
+                           (ULONG)(uintptr_t)&gui->messages_list,
+                       LISTBROWSER_Selected, (ULONG)~0UL,
+                       LISTBROWSER_Top,
+                           old_top ? old_top + (ULONG)added : 0UL,
+                       LISTBROWSER_SortColumn, 3,
+                       TAG_DONE);
+    else
+        SetAttrs((Object *)gui->messages_gadget,
+                 LISTBROWSER_ColumnInfo, (ULONG)(uintptr_t)gui->columns,
+                 LISTBROWSER_Labels,
+                     (ULONG)(uintptr_t)&gui->messages_list,
+                 LISTBROWSER_Selected, (ULONG)~0UL,
+                 LISTBROWSER_Top, old_top ? old_top + (ULONG)added : 0UL,
+                 LISTBROWSER_SortColumn, 3,
+                 TAG_DONE);
     if (selected_uid)
         set_message_selected_visual(gui, selected_uid);
     sync_messages_scroller(gui);
@@ -687,10 +707,13 @@ void set_message_seen_visual(AmgGui *gui, ULONG uid, int seen)
     edit.lbe_GInfo = NULL;
     edit.lbe_Node = node;
     edit.lbe_NodeAttrs = tags;
-    (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
-                          (Msg)&edit);
-    if (gui->window)
+    if (gui->window) {
+        (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
+                              (Msg)&edit);
         RefreshGList(gui->messages_gadget, gui->window, NULL, 1);
+    } else {
+        SetListBrowserNodeAttrsA(node, tags);
+    }
 }
 
 
@@ -720,10 +743,13 @@ void set_message_flagged_visual(AmgGui *gui, ULONG uid, int flagged)
     edit.lbe_GInfo = NULL;
     edit.lbe_Node = node;
     edit.lbe_NodeAttrs = tags;
-    (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
-                          (Msg)&edit);
-    if (gui->window)
+    if (gui->window) {
+        (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
+                              (Msg)&edit);
         RefreshGList(gui->messages_gadget, gui->window, NULL, 1);
+    } else {
+        SetListBrowserNodeAttrsA(node, tags);
+    }
 }
 
 
@@ -744,10 +770,13 @@ void set_message_selected_visual(AmgGui *gui, ULONG uid)
     edit.lbe_GInfo = NULL;
     edit.lbe_Node = node;
     edit.lbe_NodeAttrs = tags;
-    (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
-                          (Msg)&edit);
-    if (gui->window)
+    if (gui->window) {
+        (void)DoGadgetMethodA(gui->messages_gadget, gui->window, NULL,
+                              (Msg)&edit);
         RefreshGList(gui->messages_gadget, gui->window, NULL, 1);
+    } else {
+        SetListBrowserNodeAttrsA(node, tags);
+    }
 }
 
 

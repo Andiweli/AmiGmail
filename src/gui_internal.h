@@ -15,6 +15,8 @@
 #include <intuition/intuition.h>
 #include <utility/hooks.h>
 
+struct DiskObject;
+
 #define BANNER_COLOR_COUNT 8U
 #define GUI_REPLY_BODY_MAX 32768U
 #define GUI_SCROLLBAR_WIDTH 16
@@ -98,6 +100,9 @@ struct AmgGui {
     AmgNetwork *network;
     Object *window_object;
     struct Window *window;
+    struct MsgPort *app_port;
+    int iconified;
+    struct DiskObject *icon_iconified;
     struct Gadget *new_mail_gadget;
     struct Gadget *reply_gadget;
     struct Gadget *system_labels_gadget;
@@ -120,6 +125,10 @@ struct AmgGui {
     LONG preview_url_signal_bit;
     ULONG preview_url_signal_mask;
     struct Task *preview_url_signal_task;
+    Object *notification_sound_object;
+    LONG notification_sound_signal_bit;
+    ULONG notification_sound_signal_mask;
+    struct Task *notification_sound_signal_task;
     struct Hook label_tree_render_hook;
     struct Hook system_label_render_hook;
     struct Hook message_flag_render_hook;
@@ -170,6 +179,7 @@ struct AmgGui {
     int message_click_valid;
     PendingTempCleanup *pending_temp_cleanups;
     int mail_network_started;
+    int network_reconfigure_pending;
     int update_check_started;
     int update_check_deferred;
     int update_check_pending;
@@ -237,6 +247,16 @@ void gui_state_set_mail_status_active(void);
 void gui_state_set_mail_status_inactive(void);
 void gui_state_set_inbox_unseen(AmgGui *gui, unsigned long count);
 void gui_state_adjust_inbox_unseen(AmgGui *gui, long delta);
+
+/* Workbench iconification and notification sound. */
+void gui_iconify(AmgGui *gui);
+int gui_uniconify(AmgGui *gui);
+int gui_notify_init(AmgGui *gui);
+void gui_notify_cleanup(AmgGui *gui);
+ULONG gui_notify_signal_mask(const AmgGui *gui);
+void gui_notify_handle_signal(AmgGui *gui);
+int gui_notify_preview_sound(AmgGui *gui, const char *path);
+void gui_notify_new_mail(AmgGui *gui);
 
 /* GitHub release check/download GUI integration. */
 void gui_update_refresh_gadget(AmgGui *gui);

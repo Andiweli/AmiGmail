@@ -188,8 +188,11 @@ int amg_storage_save_account(const char *path,const AmgAccount *account,const ch
     amg_buffer_init(&plain);amg_buffer_init(&cipher);fprintf(file,"%s",STORAGE_HEADER);
     if(write_hex_line(file,"display_name",(const unsigned char*)account->display_name,strlen(account->display_name))!=AMG_OK||
        write_hex_line(file,"email",(const unsigned char*)account->email,strlen(account->email))!=AMG_OK||
-       fprintf(file,"auth_mode=%d\nimap_host=%s\nimap_port=%u\nsmtp_host=%s\nsmtp_port=%u\nsmtp_starttls=%d\nfetch_on_start=%d\nperiodic_fetch=%d\nfetch_days=%u\n",
-       (int)account->auth_mode,account->imap_host,(unsigned)account->imap_port,account->smtp_host,(unsigned)account->smtp_port,account->smtp_starttls,account->fetch_on_start?1:0,account->periodic_fetch?1:0,account->fetch_days?account->fetch_days:180U)<0)result=AMG_ERR_IO;
+       fprintf(file,"auth_mode=%d\nimap_host=%s\nimap_port=%u\nsmtp_host=%s\nsmtp_port=%u\nsmtp_starttls=%d\nfetch_on_start=%d\nperiodic_fetch=%d\nfetch_days=%u\nnotification_sound=%d\n",
+       (int)account->auth_mode,account->imap_host,(unsigned)account->imap_port,account->smtp_host,(unsigned)account->smtp_port,account->smtp_starttls,account->fetch_on_start?1:0,account->periodic_fetch?1:0,account->fetch_days?account->fetch_days:180U,account->notification_sound?1:0)<0)result=AMG_ERR_IO;
+    if(result==AMG_OK)result=write_hex_line(file,"notification_sound_path",
+        (const unsigned char*)account->notification_sound_path,
+        strlen(account->notification_sound_path));
     if(result==AMG_OK&&master_password&&*master_password){
         result=write_hex_line(file,"remembered_master",
                               (const unsigned char*)master_password,
@@ -290,6 +293,18 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
     if (field(data,"fetch_days",value,sizeof(value))) {
         unsigned long days=strtoul(value,NULL,10);
         if(days>=1UL&&days<=3650UL)account->fetch_days=(unsigned int)days;
+    }
+    if (field(data,"notification_sound",value,sizeof(value)))
+        account->notification_sound=atoi(value)?1:0;
+    if(field(data,"notification_sound_path",value,sizeof(value))){
+        decoded.length=0;
+        if(hex_decode(value,&decoded)==AMG_OK&&
+           amg_buffer_terminate(&decoded)==AMG_OK){
+            strncpy(account->notification_sound_path,(char*)decoded.data,
+                    sizeof(account->notification_sound_path)-1U);
+            account->notification_sound_path[
+                sizeof(account->notification_sound_path)-1U]=0;
+        }
     }
     remembered_master[0]=0;
     if ((!effective_master||!*effective_master) &&

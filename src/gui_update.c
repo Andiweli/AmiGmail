@@ -31,9 +31,7 @@ void gui_update_refresh_gadget(AmgGui *gui)
 {
     const char *text;
     LONG text_pen;
-    if (!gui || !gui->window) return;
-
-    if (!gui->update_gadget) return;
+    if (!gui || !gui->update_gadget) return;
     if (gui->update_available) {
         text = T("Neues Update", "new Update");
         text_pen = gui->update_pen;
@@ -41,13 +39,22 @@ void gui_update_refresh_gadget(AmgGui *gui)
         text = T("Aktuelle Version", "Up to date");
         text_pen = gui->text_pen;
     }
-    SetGadgetAttrs(gui->update_gadget, gui->window, NULL,
-                   GA_Text, (ULONG)(uintptr_t)text,
-                   GA_ReadOnly, gui->update_available ? FALSE : TRUE,
-                   BUTTON_TextPen, text_pen,
-                   BUTTON_FillTextPen, text_pen,
-                   TAG_DONE);
-    RefreshGList(gui->update_gadget, gui->window, NULL, 1);
+    if (gui->window) {
+        SetGadgetAttrs(gui->update_gadget, gui->window, NULL,
+                       GA_Text, (ULONG)(uintptr_t)text,
+                       GA_ReadOnly, gui->update_available ? FALSE : TRUE,
+                       BUTTON_TextPen, text_pen,
+                       BUTTON_FillTextPen, text_pen,
+                       TAG_DONE);
+        RefreshGList(gui->update_gadget, gui->window, NULL, 1);
+    } else {
+        SetAttrs((Object *)gui->update_gadget,
+                 GA_Text, (ULONG)(uintptr_t)text,
+                 GA_ReadOnly, gui->update_available ? FALSE : TRUE,
+                 BUTTON_TextPen, text_pen,
+                 BUTTON_FillTextPen, text_pen,
+                 TAG_DONE);
+    }
 }
 
 void gui_update_request_check(AmgGui *gui)

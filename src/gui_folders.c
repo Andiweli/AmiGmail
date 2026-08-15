@@ -817,30 +817,49 @@ void select_label_index(AmgGui *gui, size_t index)
 {
     struct Node *node;
     if (!gui) return;
-    if (gui->system_labels_gadget)
-        SetGadgetAttrs(gui->system_labels_gadget, gui->window, NULL,
-                       LISTBROWSER_Selected, (ULONG)~0UL,
-                       TAG_DONE);
-    if (gui->labels_gadget)
-        SetGadgetAttrs(gui->labels_gadget, gui->window, NULL,
-                       LISTBROWSER_Selected, (ULONG)~0UL,
-                       TAG_DONE);
+    if (gui->system_labels_gadget) {
+        if (gui->window)
+            SetGadgetAttrs(gui->system_labels_gadget, gui->window, NULL,
+                           LISTBROWSER_Selected, (ULONG)~0UL, TAG_DONE);
+        else
+            SetAttrs((Object *)gui->system_labels_gadget,
+                     LISTBROWSER_Selected, (ULONG)~0UL, TAG_DONE);
+    }
+    if (gui->labels_gadget) {
+        if (gui->window)
+            SetGadgetAttrs(gui->labels_gadget, gui->window, NULL,
+                           LISTBROWSER_Selected, (ULONG)~0UL, TAG_DONE);
+        else
+            SetAttrs((Object *)gui->labels_gadget,
+                     LISTBROWSER_Selected, (ULONG)~0UL, TAG_DONE);
+    }
     if (index < GUI_SYSTEM_LABEL_COUNT) {
         if (index == GUI_SYSTEM_LABEL_HIDDEN_INDEX) return;
         node = find_node_by_user_data(&gui->system_labels_list,
                                       (ULONG)index);
-        if (node && gui->system_labels_gadget)
-            SetGadgetAttrs(gui->system_labels_gadget, gui->window, NULL,
-                           LISTBROWSER_SelectedNode,
-                               (ULONG)(uintptr_t)node,
-                           TAG_DONE);
+        if (node && gui->system_labels_gadget) {
+            if (gui->window)
+                SetGadgetAttrs(gui->system_labels_gadget, gui->window, NULL,
+                               LISTBROWSER_SelectedNode,
+                                   (ULONG)(uintptr_t)node, TAG_DONE);
+            else
+                SetAttrs((Object *)gui->system_labels_gadget,
+                         LISTBROWSER_SelectedNode, (ULONG)(uintptr_t)node,
+                         TAG_DONE);
+        }
         return;
     }
     node = find_node_by_user_data(&gui->labels_list, (ULONG)index);
-    if (node && gui->labels_gadget)
-        SetGadgetAttrs(gui->labels_gadget, gui->window, NULL,
-                       LISTBROWSER_SelectedNode, (ULONG)(uintptr_t)node,
-                       TAG_DONE);
+    if (node && gui->labels_gadget) {
+        if (gui->window)
+            SetGadgetAttrs(gui->labels_gadget, gui->window, NULL,
+                           LISTBROWSER_SelectedNode, (ULONG)(uintptr_t)node,
+                           TAG_DONE);
+        else
+            SetAttrs((Object *)gui->labels_gadget,
+                     LISTBROWSER_SelectedNode, (ULONG)(uintptr_t)node,
+                     TAG_DONE);
+    }
 }
 
 static void label_scroll_geometry(AmgGui *gui, ULONG *top_out,
