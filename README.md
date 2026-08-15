@@ -2,7 +2,7 @@
 
 **A native Gmail client for AmigaOS 3.2+ — built with ReAction, IMAP, SMTP and AmiSSL.**
 
-![Version](https://img.shields.io/badge/version-1.2-blue)
+![Version](https://img.shields.io/badge/version-1.6-blue)
 ![AmigaOS](https://img.shields.io/badge/AmigaOS-3.2%2B-orange)
 ![Gmail](https://img.shields.io/badge/Gmail-IMAP%20%2F%20SMTP-red)
 ![ReAction](https://img.shields.io/badge/GUI-ReAction-green)
@@ -20,26 +20,28 @@ AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It pro
 ## 📧 Features
 
 - Native **AmigaOS 3.2+ / ReAction** interface
-- Single Gmail account
-- Gmail **Inbox, Sent, All Mail, Trash, Spam and Drafts**
-- Gmail labels displayed as an expandable folder tree
+- Single Gmail account with Gmail's **Inbox, Sent, All Mail, Trash, Spam and Drafts**
+- Gmail labels displayed as an expandable folder tree with [+] and [-] icons
 - Nested labels can be expanded and collapsed; the folder view state is remembered
 - Optional automatic Inbox fetch when AmiGmail starts
 - Optional automatic Inbox check every 5 minutes
 - Compose new mail and reply to messages
 - Move messages between Gmail folders/labels and back to the Inbox
-- Delete messages and empty Gmail Trash
+- Delete Spam and empty Gmail Trash
 - Mark messages as read or unread
 - Multi-selection for supported mail operations
 - Open, edit and save Gmail drafts
-- Sending an edited draft removes the old server-side draft only after successful delivery
 - MIME messages and file attachments
-- Send attachments up to **10 MB**
+- Send attachments **up to 8 files and 10 MB**
 - Save attachments from received messages
 - Sort messages by sender, subject, date or message size
 - Clickable URLs via OpenURL or IBrowse `mailto:%h`
 - MIME, Base64, Quoted-Printable and RFC 2047 handling
-- Gmail IMAP extensions and label handling
+- Version 1.4 introduced an update notification
+- Version 1.4 saves the window position and size upon closing
+- Version 1.5 allows AmiGmail to be iconified
+- Version 1.5 allows notifications to play when new email(s) arrive
+- Version 1.6 introduced an Address book/Contacts with CSV/VCF import
 - Secure IMAP/SMTP connections through **AmiSSL**
 - German UI on German AmigaOS systems, English fallback otherwise
 - **No local email cache:** messages are read directly from Gmail via IMAP
