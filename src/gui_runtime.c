@@ -222,6 +222,16 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
                        gui->preview_url_signal_mask | notify_signal |
                        SIGBREAKF_CTRL_C);
         if (signals & SIGBREAKF_CTRL_C) gui->running = 0;
+
+        /* Handle a completed notification sound before network events.
+         * A sound preview from the modal configuration window can leave its
+         * completion bit in the Wait() result.  If a new-mail network event
+         * starts a fresh sound first, processing that old completion bit
+         * afterwards would immediately dispose the newly started object and
+         * make the first notification appear silent. */
+        if (notify_signal && (signals & notify_signal))
+            gui_notify_handle_signal(gui);
+
         if (network_signal && (signals & network_signal)) {
             handle_network(gui);
             draw_window_overlays(gui);
@@ -246,9 +256,6 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
                 periodic_timer_clear_signal(gui);
             }
         }
-        if (notify_signal && (signals & notify_signal))
-            gui_notify_handle_signal(gui);
-
         /* AppIcon double-clicks arrive through WINDOW_AppPort.  Feed both the
          * normal IDCMP and AppPort signals to window.class so it can return
          * WMHI_UNICONIFY. */

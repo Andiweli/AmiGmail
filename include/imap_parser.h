@@ -52,6 +52,8 @@ int amg_imap_greeting_is_success(const unsigned char *line, size_t length);
 int amg_imap_greeting_status(const unsigned char *data, size_t length);
 int amg_imap_parse_exists(const unsigned char *data, size_t length,
                           unsigned long *exists);
+int amg_imap_parse_uidvalidity(const unsigned char *data, size_t length,
+                               unsigned long *uid_validity);
 int amg_imap_parse_fetch_sequence(const unsigned char *data, size_t length,
                                   unsigned long uid,
                                   unsigned long *sequence);

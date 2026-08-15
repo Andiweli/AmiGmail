@@ -211,6 +211,31 @@ int amg_imap_parse_exists(const unsigned char *data, size_t length,
     return 0;
 }
 
+int amg_imap_parse_uidvalidity(const unsigned char *data, size_t length,
+                               unsigned long *uid_validity)
+{
+    size_t line_start = 0;
+    if (!data || !uid_validity) return 0;
+    while (line_start < length) {
+        size_t line_end = line_start;
+        unsigned long number;
+        while (line_end < length && data[line_end] != '\r' &&
+               data[line_end] != '\n')
+            ++line_end;
+        if (find_number_after_token(data + line_start,
+                                    line_end - line_start,
+                                    0U, "UIDVALIDITY", &number)) {
+            *uid_validity = number;
+            return 1;
+        }
+        while (line_end < length &&
+               (data[line_end] == '\r' || data[line_end] == '\n'))
+            ++line_end;
+        line_start = line_end;
+    }
+    return 0;
+}
+
 int amg_imap_parse_fetch_sequence(const unsigned char *data, size_t length,
                                   unsigned long uid,
                                   unsigned long *sequence)

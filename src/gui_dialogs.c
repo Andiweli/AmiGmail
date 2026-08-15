@@ -119,6 +119,10 @@ static void replace_account(AmgGui *gui, AmgAccount *replacement)
     *gui->account = *replacement;
     replacement->app_password = NULL;
     replacement->refresh_token = NULL;
+    /* The persisted Inbox UID high-water mark is account-specific. Reload
+     * it after unlock or account replacement so the first fetch can already
+     * recognise mail that arrived while AmiGmail was not running. */
+    gui_state_load_inbox_notification(gui);
 }
 
 static int nullable_text_equal(const char *left, const char *right)

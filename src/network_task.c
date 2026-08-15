@@ -368,18 +368,27 @@ static void network_worker(void)
                         &imap,
                         message->argument1[0] ? message->argument1 : "INBOX",
                         &error);
-                    if (result == AMG_OK)
+                    if (result == AMG_OK) {
+                        snprintf(message->argument2,
+                                 sizeof(message->argument2), "%lu",
+                                 imap.uid_validity);
                         result = amg_imap_fetch_recent(
                             &imap,
                             network->account.fetch_days
                                 ? network->account.fetch_days : 180U,
                             &message->payload, &error);
+                    }
                     break;
 
                 case AMG_NET_CHECK_INBOX:
                 {
                     char previous_mailbox[sizeof(imap.selected_mailbox)];
                     AmgError restore_error;
+                    unsigned long expected_uid_validity = 0UL;
+                    unsigned long inbox_uid_validity = 0UL;
+                    if (message->argument1[0])
+                        expected_uid_validity = strtoul(
+                            message->argument1, NULL, 10);
                     previous_mailbox[0] = 0;
                     if (imap.selected_mailbox[0]) {
                         strncpy(previous_mailbox, imap.selected_mailbox,
@@ -388,7 +397,14 @@ static void network_worker(void)
                     }
                     result = amg_imap_select(&imap, "INBOX", &error);
                     if (result == AMG_OK) {
-                        if (message->uid)
+                        inbox_uid_validity = imap.uid_validity;
+                        /* A persisted UID belongs to exactly one UIDVALIDITY
+                         * generation.  If Gmail recreated the mailbox, fetch
+                         * a normal recent snapshot and let the GUI establish
+                         * a fresh high-water mark. */
+                        if (message->uid &&
+                            (!expected_uid_validity || !inbox_uid_validity ||
+                             expected_uid_validity == inbox_uid_validity))
                             result = amg_imap_fetch_after_uid(
                                 &imap, message->uid, &message->payload, &error);
                         else
@@ -398,6 +414,10 @@ static void network_worker(void)
                                     ? network->account.fetch_days : 180U,
                                 &message->payload, &error);
                     }
+                    if (result == AMG_OK)
+                        snprintf(message->argument2,
+                                 sizeof(message->argument2), "%lu",
+                                 inbox_uid_validity);
                     if (previous_mailbox[0] &&
                         strcmp(previous_mailbox, "INBOX")) {
                         memset(&restore_error, 0, sizeof(restore_error));

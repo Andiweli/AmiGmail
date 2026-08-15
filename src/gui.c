@@ -517,6 +517,7 @@ AmgGui *amg_gui_create(AmgAccount *account, AmgError *error)
     gui->account = account;
     gui->notification_sound_signal_bit = -1;
     gui_state_set_mail_status_active();
+    gui_state_load_inbox_notification(gui);
     NewList(&gui->system_labels_list);
     NewList(&gui->labels_list);
     NewList(&gui->messages_list);

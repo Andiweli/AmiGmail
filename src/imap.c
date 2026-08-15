@@ -453,13 +453,22 @@ static int quote_mailbox(const char *utf8, AmgBuffer *output)
 int amg_imap_select(AmgImapSession *session, const char *mailbox_utf8, AmgError *error)
 {
     const char *resolved_mailbox;
-    AmgBuffer command,response;unsigned long exists=0;int result;
+    AmgBuffer command,response;unsigned long exists=0,uid_validity=0;int result;
     if (!session || !mailbox_utf8 || !*mailbox_utf8)
         return AMG_ERR_ARGUMENT;
     resolved_mailbox=resolve_special_mailbox(session,mailbox_utf8);amg_buffer_init(&command);amg_buffer_init(&response);amg_buffer_append_cstr(&command,"SELECT ");
     result=quote_mailbox(resolved_mailbox,&command);if(result==AMG_OK){amg_buffer_terminate(&command);result=imap_command(session,(char*)command.data,&response,error);}
     if(result==AMG_OK){amg_buffer_terminate(&response);if(!amg_imap_parse_exists(response.data,response.length,&exists)){result=AMG_ERR_PROTOCOL;amg_error_set(error,result,T("Gmail hat keine Nachrichtenanzahl f\303\274r den Ordner geliefert.", "Gmail did not provide a message count for the folder."));}}
-    if(result==AMG_OK){session->selected_exists=exists;snprintf(session->selected_mailbox,sizeof(session->selected_mailbox),"%s",resolved_mailbox);}
+    if(result==AMG_OK){
+        /* UIDVALIDITY identifies the current mailbox generation.  Persisted
+         * notification UIDs are only comparable inside the same generation. */
+        (void)amg_imap_parse_uidvalidity(response.data,response.length,
+                                         &uid_validity);
+        session->uid_validity=uid_validity;
+        session->selected_exists=exists;
+        snprintf(session->selected_mailbox,sizeof(session->selected_mailbox),
+                 "%s",resolved_mailbox);
+    }
     amg_buffer_free(&command);amg_buffer_free(&response);return result;
 }
 

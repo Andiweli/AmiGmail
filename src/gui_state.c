@@ -14,12 +14,39 @@
 #define WINDOW_STATE_PATH "ENVARC:AmiGmail/window.state"
 #define WINDOW_STATE_TEMP "ENVARC:AmiGmail/window.state.new"
 #define WINDOW_STATE_HEADER "AMIGMAIL-WINDOW-2"
+#define INBOX_NOTIFY_STATE_PATH "ENVARC:AmiGmail/inbox-notify.state"
+#define INBOX_NOTIFY_STATE_TEMP "ENVARC:AmiGmail/inbox-notify.state.new"
+#define INBOX_NOTIFY_STATE_HEADER "AMIGMAIL-INBOX-NOTIFY-1"
 #define MAIL_STATUS_VAR "AmiGmailStatus"
 #define MAIL_STATUS_ENVARC_PATH "ENVARC:" MAIL_STATUS_VAR
 #define T(de, en) amg_tr((de), (en))
 
 static int mail_status_inactive_exists = 0;
 static int mail_status_shutdown_saved = 0;
+
+static unsigned long notification_account_fingerprint(const AmgAccount *account)
+{
+    const char *parts[2];
+    unsigned long hash = 2166136261UL;
+    size_t p;
+    if (!account) return 0UL;
+    parts[0] = account->imap_host;
+    parts[1] = account->email;
+    for (p = 0U; p < 2U; ++p) {
+        const unsigned char *text = (const unsigned char *)parts[p];
+        while (text && *text) {
+            hash ^= (unsigned long)*text++;
+            hash *= 16777619UL;
+        }
+        hash ^= 0xffUL;
+        hash *= 16777619UL;
+    }
+    hash ^= (unsigned long)(account->imap_port & 0xffU);
+    hash *= 16777619UL;
+    hash ^= (unsigned long)((account->imap_port >> 8) & 0xffU);
+    hash *= 16777619UL;
+    return hash;
+}
 
 static void ensure_state_drawer(void)
 {
@@ -123,6 +150,70 @@ void gui_state_save_window(const AmgGui *gui)
     DeleteFile((STRPTR)WINDOW_STATE_PATH);
     if (!Rename((STRPTR)WINDOW_STATE_TEMP, (STRPTR)WINDOW_STATE_PATH))
         DeleteFile((STRPTR)WINDOW_STATE_TEMP);
+}
+
+void gui_state_load_inbox_notification(AmgGui *gui)
+{
+    FILE *file;
+    char header[64];
+    unsigned long fingerprint = 0UL;
+    unsigned long uid_validity = 0UL;
+    unsigned long latest_uid = 0UL;
+    int ready = 0;
+    unsigned long expected;
+
+    if (!gui || !gui->account) return;
+    gui->inbox_latest_uid = 0UL;
+    gui->inbox_uid_validity = 0UL;
+    gui->inbox_baseline_ready = 0;
+    expected = notification_account_fingerprint(gui->account);
+    if (!expected) return;
+
+    file = fopen(INBOX_NOTIFY_STATE_PATH, "rb");
+    if (!file) return;
+    if (!fgets(header, sizeof(header), file) ||
+        strncmp(header, INBOX_NOTIFY_STATE_HEADER,
+                strlen(INBOX_NOTIFY_STATE_HEADER)) != 0 ||
+        fscanf(file,
+               "account=%lu\nready=%d\nuid_validity=%lu\nlatest_uid=%lu\n",
+               &fingerprint, &ready, &uid_validity, &latest_uid) != 4 ||
+        fingerprint != expected || ready != 1) {
+        fclose(file);
+        return;
+    }
+    fclose(file);
+    gui->inbox_latest_uid = latest_uid;
+    gui->inbox_uid_validity = uid_validity;
+    gui->inbox_baseline_ready = 1;
+}
+
+void gui_state_save_inbox_notification(const AmgGui *gui)
+{
+    FILE *file;
+    int write_failed = 0;
+    unsigned long fingerprint;
+    if (!gui || !gui->account || !gui->inbox_baseline_ready) return;
+    fingerprint = notification_account_fingerprint(gui->account);
+    if (!fingerprint) return;
+    ensure_state_drawer();
+    file = fopen(INBOX_NOTIFY_STATE_TEMP, "wb");
+    if (!file) return;
+    if (fprintf(file,
+                "%s\naccount=%lu\nready=1\nuid_validity=%lu\nlatest_uid=%lu\n",
+                INBOX_NOTIFY_STATE_HEADER,
+                fingerprint,
+                gui->inbox_uid_validity,
+                gui->inbox_latest_uid) < 0)
+        write_failed = 1;
+    if (fclose(file) != 0) write_failed = 1;
+    if (write_failed) {
+        DeleteFile((STRPTR)INBOX_NOTIFY_STATE_TEMP);
+        return;
+    }
+    DeleteFile((STRPTR)INBOX_NOTIFY_STATE_PATH);
+    if (!Rename((STRPTR)INBOX_NOTIFY_STATE_TEMP,
+                (STRPTR)INBOX_NOTIFY_STATE_PATH))
+        DeleteFile((STRPTR)INBOX_NOTIFY_STATE_TEMP);
 }
 
 static void set_mail_status_value(const char *value)

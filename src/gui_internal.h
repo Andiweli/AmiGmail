@@ -170,6 +170,7 @@ struct AmgGui {
     int periodic_timer_pending;
     int periodic_check_pending;
     unsigned long inbox_latest_uid;
+    unsigned long inbox_uid_validity;
     int inbox_baseline_ready;
     unsigned long inbox_unseen_count;
     int inbox_unseen_known;
@@ -247,6 +248,8 @@ void gui_state_set_mail_status_active(void);
 void gui_state_set_mail_status_inactive(void);
 void gui_state_set_inbox_unseen(AmgGui *gui, unsigned long count);
 void gui_state_adjust_inbox_unseen(AmgGui *gui, long delta);
+void gui_state_load_inbox_notification(AmgGui *gui);
+void gui_state_save_inbox_notification(const AmgGui *gui);
 
 /* Workbench iconification and notification sound. */
 void gui_iconify(AmgGui *gui);

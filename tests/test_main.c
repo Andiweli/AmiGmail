@@ -82,6 +82,17 @@ static void test_imap_parser(void)
         CHECK(exists == 12345UL);
     }
     {
+        const char *select_response =
+            "* FLAGS (\\Seen)\r\n"
+            "* OK [UIDVALIDITY 777001] UIDs valid\r\n"
+            "* 3 EXISTS\r\nA000001 OK selected\r\n";
+        unsigned long uid_validity = 0UL;
+        CHECK(amg_imap_parse_uidvalidity(
+            (const unsigned char *)select_response,
+            strlen(select_response), &uid_validity) == 1);
+        CHECK(uid_validity == 777001UL);
+    }
+    {
         const char *fetch_response =
             "* 9876 FETCH (UID 456789 FLAGS (\\Seen))\r\n"
             "A000002 OK fetched\r\n";

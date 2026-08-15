@@ -259,6 +259,30 @@ static int selected_contact_id(struct Gadget *gadget, unsigned long *id)
     return 1;
 }
 
+static size_t selected_contact_ids(const struct List *list,
+                                   unsigned long *ids, size_t capacity)
+{
+    const struct Node *node;
+    size_t count = 0U;
+    if (!list) return 0U;
+    node = list->lh_Head;
+    while (node && node->ln_Succ) {
+        ULONG selected = FALSE, value = 0UL;
+        GetListBrowserNodeAttrs((struct Node *)node,
+                                LBNA_Selected,
+                                (ULONG)(uintptr_t)&selected,
+                                LBNA_UserData,
+                                (ULONG)(uintptr_t)&value,
+                                TAG_DONE);
+        if (selected && value) {
+            if (ids && count < capacity) ids[count] = (unsigned long)value;
+            ++count;
+        }
+        node = node->ln_Succ;
+    }
+    return count;
+}
+
 static void set_contact_status(struct Gadget *status, struct Window *window,
                                const char *text)
 {
@@ -750,6 +774,7 @@ void gui_contacts_dialog(AmgGui *gui, AmgError *error)
                     LISTBROWSER_ColumnInfo, (ULONG)(uintptr_t)columns,
                     LISTBROWSER_ColumnTitles, TRUE,
                     LISTBROWSER_TitleClickable, TRUE,
+                    LISTBROWSER_MultiSelect, TRUE,
                     LISTBROWSER_ShowSelected, TRUE,
                     LISTBROWSER_Spacing, 1,
                     LISTBROWSER_SortColumn, 1,
@@ -835,41 +860,90 @@ void gui_contacts_dialog(AmgGui *gui, AmgError *error)
                                     T("Kontakt gespeichert.", "Contact saved."));
                             }
                         } else if (gid == GID_CONTACTS_DELETE) {
-                            unsigned long id = 0UL;
-                            if (!selected_contact_id(list_gadget, &id)) {
+                            size_t selected_count =
+                                selected_contact_ids(&list, NULL, 0U);
+                            unsigned long *ids = NULL;
+                            char question[160];
+                            char status_text[160];
+                            size_t i;
+                            int delete_ok = 1;
+
+                            if (!selected_count) {
                                 set_contact_status(status_gadget, window,
-                                    T("Bitte zuerst einen Kontakt ausw\344hlen.",
-                                      "Please select a contact first."));
+                                    T("Bitte mindestens einen Kontakt ausw\344hlen.",
+                                      "Please select at least one contact."));
                                 break;
                             }
+                            ids = (unsigned long *)malloc(
+                                selected_count * sizeof(*ids));
+                            if (!ids) {
+                                set_contact_status(status_gadget, window,
+                                    T("Nicht genug Speicher.",
+                                      "Not enough memory."));
+                                break;
+                            }
+                            (void)selected_contact_ids(
+                                &list, ids, selected_count);
+
+                            if (selected_count == 1U) {
+                                snprintf(question, sizeof(question), "%s",
+                                         T("Kontakt wirklich l\366schen?",
+                                           "Really delete contact?"));
+                            } else {
+                                amg_tr_snprintf(
+                                    question, sizeof(question),
+                                    "%lu ausgew\344hlte Kontakte wirklich l\366schen?",
+                                    "Really delete %lu selected contacts?",
+                                    (unsigned long)selected_count);
+                            }
                             if (confirm_question_dialog_for_window(
-                                    gui, window,
-                                    T("Kontakt wirklich l\366schen?",
-                                      "Really delete contact?"),
+                                    gui, window, question,
                                     T("Dieser Vorgang kann nicht widerrufen werden.",
                                       "This action cannot be undone."),
-                                    310L)) {
-                                if (amg_contacts_delete(&book, id, error) == AMG_OK &&
+                                    330L)) {
+                                for (i = 0U; i < selected_count; ++i) {
+                                    if (amg_contacts_delete(
+                                            &book, ids[i], error) != AMG_OK) {
+                                        delete_ok = 0;
+                                        break;
+                                    }
+                                }
+                                if (delete_ok &&
                                     amg_contacts_save(AMG_CONTACTS_DEFAULT_PATH,
                                                       &book, error) == AMG_OK) {
                                     rebuild_contact_list(list_gadget, window,
                                                          &list, &book, 0,
-                                                     render_hooks, row_height);
+                                                         render_hooks, row_height);
+                                    if (selected_count == 1U) {
+                                        snprintf(status_text,
+                                                 sizeof(status_text), "%s",
+                                                 T("Kontakt gel\366scht.",
+                                                   "Contact deleted."));
+                                    } else {
+                                        amg_tr_snprintf(
+                                            status_text, sizeof(status_text),
+                                            "%lu Kontakte gel\366scht.",
+                                            "%lu contacts deleted.",
+                                            (unsigned long)selected_count);
+                                    }
                                     set_contact_status(status_gadget, window,
-                                        T("Kontakt gel\366scht.", "Contact deleted."));
+                                                       status_text);
                                 } else {
+                                    /* Restore the last durable state if either
+                                     * one delete or the transactional save fails. */
                                     amg_contacts_free(&book);
                                     amg_contacts_init(&book);
                                     amg_contacts_load(AMG_CONTACTS_DEFAULT_PATH,
                                                       &book, NULL);
                                     rebuild_contact_list(list_gadget, window,
                                                          &list, &book, 0,
-                                                     render_hooks, row_height);
+                                                         render_hooks, row_height);
                                     set_contact_status(status_gadget, window,
-                                        T("Kontakt konnte nicht gel\366scht werden.",
-                                          "Contact could not be deleted."));
+                                        T("Kontakte konnten nicht gel\366scht werden.",
+                                          "Contacts could not be deleted."));
                                 }
                             }
+                            free(ids);
                         } else if (gid == GID_CONTACTS_IMPORT) {
                             import_contacts(gui, window, list_gadget, &list,
                                             status_gadget, &book, error,

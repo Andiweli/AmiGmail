@@ -39,6 +39,49 @@ static int ensure_account(AmgGui *gui, AmgError *error)
 }
 
 
+static unsigned long inbox_event_uid_validity(const AmgNetworkEvent *event)
+{
+    char *end = NULL;
+    unsigned long value;
+    if (!event || !event->argument2[0]) return 0UL;
+    value = strtoul(event->argument2, &end, 10);
+    return end && *end == 0 ? value : 0UL;
+}
+
+static int inbox_generation_changed(const AmgGui *gui,
+                                    unsigned long current_uid_validity)
+{
+    return gui && gui->inbox_baseline_ready &&
+        gui->inbox_uid_validity != 0UL && current_uid_validity != 0UL &&
+        gui->inbox_uid_validity != current_uid_validity;
+}
+
+static void commit_inbox_notification_baseline(
+    AmgGui *gui, unsigned long current_uid_validity,
+    unsigned long max_uid, int reset_generation)
+{
+    unsigned long old_uid;
+    unsigned long old_uid_validity;
+    int old_ready;
+    if (!gui) return;
+    old_uid = gui->inbox_latest_uid;
+    old_uid_validity = gui->inbox_uid_validity;
+    old_ready = gui->inbox_baseline_ready;
+
+    if (!old_ready || reset_generation)
+        gui->inbox_latest_uid = max_uid;
+    else if (max_uid > gui->inbox_latest_uid)
+        gui->inbox_latest_uid = max_uid;
+    if (current_uid_validity != 0UL)
+        gui->inbox_uid_validity = current_uid_validity;
+    gui->inbox_baseline_ready = 1;
+
+    if (!old_ready || old_uid != gui->inbox_latest_uid ||
+        old_uid_validity != gui->inbox_uid_validity)
+        gui_state_save_inbox_notification(gui);
+}
+
+
 static void update_reply_button_mode(AmgGui *gui)
 {
     const char *text;
@@ -618,6 +661,10 @@ void handle_network(AmgGui *gui)
                         int unseen_parse_error = 0;
                         int had_baseline = gui->inbox_baseline_ready;
                         unsigned long previous_uid = gui->inbox_latest_uid;
+                        unsigned long current_uid_validity =
+                            inbox_event_uid_validity(&event);
+                        int generation_changed = inbox_generation_changed(
+                            gui, current_uid_validity);
                         size_t unseen_count = message_unseen_count_from_payload(
                             event.payload, event.payload_length,
                             &unseen_parse_error);
@@ -625,15 +672,27 @@ void handle_network(AmgGui *gui)
                             event.payload, event.payload_length,
                             had_baseline ? previous_uid : 0UL,
                             &max_uid, &uid_parse_error);
-                        if (!had_baseline) new_count = 0U;
                         if (uid_parse_error >= 0) {
-                            gui->inbox_latest_uid = max_uid;
-                            gui->inbox_baseline_ready = 1;
+                            size_t notify_count = new_count;
+                            if (generation_changed) {
+                                notify_count = 0U;
+                            } else if (!had_baseline) {
+                                /* First run after installing the persistent
+                                 * notification state: alert once if the first
+                                 * snapshot contains unread mail, then save the
+                                 * high-water mark for subsequent starts. */
+                                notify_count = unseen_parse_error >= 0
+                                    ? unseen_count : 0U;
+                            }
+                            commit_inbox_notification_baseline(
+                                gui, current_uid_validity, max_uid,
+                                generation_changed);
+                            if (notify_count > 0U)
+                                gui_notify_new_mail(gui);
                         }
                         if (unseen_parse_error >= 0)
                             gui_state_set_inbox_unseen(
                                 gui, (unsigned long)unseen_count);
-                        if (new_count > 0U) gui_notify_new_mail(gui);
                     }
                     count = update_messages_from_payload(
                         gui, event.payload, event.payload_length, recipient,
@@ -681,9 +740,13 @@ void handle_network(AmgGui *gui)
                 {
                     unsigned long max_uid = 0UL;
                     unsigned long previous_uid = gui->inbox_latest_uid;
-                    int had_baseline = gui->inbox_baseline_ready;
+                    unsigned long current_uid_validity =
+                        inbox_event_uid_validity(&event);
                     int parse_error = 0;
                     int unseen_parse_error = 0;
+                    int had_baseline = gui->inbox_baseline_ready;
+                    int generation_changed = inbox_generation_changed(
+                        gui, current_uid_validity);
                     size_t unseen_count = message_unseen_count_from_payload(
                         event.payload, event.payload_length,
                         &unseen_parse_error);
@@ -700,44 +763,60 @@ void handle_network(AmgGui *gui)
                         status_local(gui, message);
                         break;
                     }
-                    if (!had_baseline) {
-                        new_count = 0U;
-                        gui->inbox_latest_uid = max_uid;
-                        if (unseen_parse_error >= 0)
-                            gui_state_set_inbox_unseen(
-                                gui, (unsigned long)unseen_count);
-                    } else {
-                        if (max_uid > gui->inbox_latest_uid)
-                            gui->inbox_latest_uid = max_uid;
-                        if (unseen_parse_error >= 0 && unseen_count > 0U)
-                            gui_state_adjust_inbox_unseen(
-                                gui, (long)unseen_count);
-                    }
-                    gui->inbox_baseline_ready = 1;
+                    {
+                        size_t notify_count = new_count;
+                        if (generation_changed) {
+                            new_count = 0U;
+                            notify_count = 0U;
+                            if (unseen_parse_error >= 0)
+                                gui_state_set_inbox_unseen(
+                                    gui, (unsigned long)unseen_count);
+                        } else if (!had_baseline) {
+                            /* Migration from the old RAM-only baseline:
+                             * issue at most one initial notification, then
+                             * persist UID/UIDVALIDITY for future starts. */
+                            new_count = 0U;
+                            notify_count = unseen_parse_error >= 0
+                                ? unseen_count : 0U;
+                            if (unseen_parse_error >= 0)
+                                gui_state_set_inbox_unseen(
+                                    gui, (unsigned long)unseen_count);
+                        } else {
+                            if (unseen_parse_error >= 0 && unseen_count > 0U)
+                                gui_state_adjust_inbox_unseen(
+                                    gui, (long)unseen_count);
+                        }
 
-                    /* Ist die Inbox gerade sichtbar, neue Header ohne
-                     * kompletten Listen-Neuaufbau einfuegen. Auswahl, Preview
-                     * und Scrollposition bleiben dadurch erhalten. Andere
-                     * Labels werden vom periodischen Abruf nie veraendert. */
-                    if (new_count > 0U &&
-                        !strcmp(gui->current_mailbox_utf8, "INBOX")) {
-                        int merge_error = 0;
-                        (void)merge_new_messages_from_payload(
-                            gui, event.payload, event.payload_length,
-                            &merge_error);
-                    }
-                    if (new_count > 0U) {
-                        char message[128];
-                        gui_notify_new_mail(gui);
-                        amg_tr_snprintf(message, sizeof(message),
-                                        "Periodischer Abruf: %lu neue Mail(s) im Posteingang.",
-                                        "Periodic fetch: %lu new mail(s) in Inbox.",
-                                        (unsigned long)new_count);
-                        status_local(gui, message);
-                    } else {
-                        status_local(gui,
-                            T("Periodischer Abruf: keine neuen Mails.",
-                              "Periodic fetch: no new mail."));
+                        commit_inbox_notification_baseline(
+                            gui, current_uid_validity, max_uid,
+                            generation_changed);
+
+                        /* Ist die Inbox gerade sichtbar, neue Header ohne
+                         * kompletten Listen-Neuaufbau einfuegen. Auswahl,
+                         * Preview und Scrollposition bleiben dadurch erhalten.
+                         * Andere Labels werden vom periodischen Abruf nie
+                         * veraendert. */
+                        if (new_count > 0U &&
+                            !strcmp(gui->current_mailbox_utf8, "INBOX")) {
+                            int merge_error = 0;
+                            (void)merge_new_messages_from_payload(
+                                gui, event.payload, event.payload_length,
+                                &merge_error);
+                        }
+                        if (notify_count > 0U) {
+                            char message[128];
+                            gui_notify_new_mail(gui);
+                            amg_tr_snprintf(
+                                message, sizeof(message),
+                                "Periodischer Abruf: %lu neue Mail(s) im Posteingang.",
+                                "Periodic fetch: %lu new mail(s) in Inbox.",
+                                (unsigned long)notify_count);
+                            status_local(gui, message);
+                        } else {
+                            status_local(gui,
+                                T("Periodischer Abruf: keine neuen Mails.",
+                                  "Periodic fetch: no new mail."));
+                        }
                     }
                     break;
                 }
@@ -933,10 +1012,14 @@ void periodic_fetch_mail(AmgGui *gui, AmgError *error)
         result = amg_network_request(gui->network, AMG_NET_CONNECT, 0,
                                      NULL, "periodic", error);
     } else {
+        char uid_validity[32];
+        snprintf(uid_validity, sizeof(uid_validity), "%lu",
+                 gui->inbox_baseline_ready
+                    ? gui->inbox_uid_validity : 0UL);
         result = amg_network_request(
             gui->network, AMG_NET_CHECK_INBOX,
             gui->inbox_baseline_ready ? gui->inbox_latest_uid : 0UL,
-            "INBOX", "periodic", error);
+            uid_validity, "periodic", error);
         if (result == AMG_OK) gui->periodic_check_pending = 1;
     }
     if (result != AMG_OK && error && error->message[0])
