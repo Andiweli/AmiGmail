@@ -1,4 +1,4 @@
-# AmiGmail 1.5: Update-Pruefung und Laufzeitstatus
+# AmiGmail 1.6: Update-Pruefung und Laufzeitstatus
 
 ## GitHub-Update-Pruefung
 
@@ -9,13 +9,13 @@ entsprechen. Release-Archive werden nach dem fuer AmiGmail verwendeten Schema
 
 Beispiel:
 
-- Tag: `v1.5`
-- Archiv: `AmiGmail-v1.5.lha`
+- Tag: `v1.6`
+- Archiv: `AmiGmail-v1.6.lha`
 
 Ist der GitHub-Release numerisch neuer als die eingebaute Programmversion,
 zeigt der kompakte Statusbereich rechts im Kopf zweizeilig die Programmversion und den Update-Status. Ohne neues Release steht dort:
 
-- `v1.5`
+- `v1.6`
 - Deutsch: `Aktuelle Version`
 - Englisch: `Up to date`
 
@@ -31,17 +31,17 @@ Fehler bei der automatischen Update-Pruefung bleiben still. Ein Fehler beim
 vom Benutzer gestarteten Download wird dagegen in der AmiGmail-Statuszeile
 angezeigt.
 
-### Testen vor der Veroeffentlichung von 1.5
+### Testen vor der Veroeffentlichung von 1.6
 
-Solange GitHub noch `v1.4` als neuesten Release liefert, zeigt eine echte
-AmiGmail-1.5-Binaerdatei korrekterweise keinen Update-Hinweis. Fuer den
+Solange GitHub noch `v1.5` als neuesten Release liefert, zeigt eine echte
+AmiGmail-1.6-Binaerdatei korrekterweise keinen Update-Hinweis. Fuer den
 Entwicklertest kann temporaer gesetzt werden:
 
     SetEnv AmiGmailUpdateTest 1
 
 Beim naechsten Programmstart wird der aktuell von GitHub gelieferte Release
 als testweise verfuegbar behandelt. Ein Klick sollte derzeit beispielsweise
-`RAM:AmiGmail-v1.4.lha` erzeugen. Nach dem Test kann die Funktion mit
+`RAM:AmiGmail-v1.5.lha` erzeugen. Nach dem Test kann die Funktion mit
 
     SetEnv AmiGmailUpdateTest 0
 

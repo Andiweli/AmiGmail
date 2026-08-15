@@ -359,6 +359,11 @@ int prepare_reply_payload(AmgGui *gui, const unsigned char *payload,
 int compose_dialog(AmgGui *gui, ComposeMode mode,
                    ComposeDraftSeed *draft_seed, AmgError *error);
 
+/* Contacts/address-book module entry points. Private to src/gui_*.c. */
+void gui_contacts_dialog(AmgGui *gui, AmgError *error);
+int gui_contacts_select_emails(AmgGui *gui, struct Window *parent,
+                               struct Gadget *target, AmgError *error);
+
 /* Dialog module entry points.  These are intentionally not public API. */
 int account_is_locked(const AmgAccount *account);
 int account_dialog(AmgGui *gui, AmgError *error);

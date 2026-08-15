@@ -94,6 +94,8 @@ static UWORD solid_fill_pattern[2] = {0xffffU, 0xffffU};
 
 static struct NewMenu menus_de[] = {
     {NM_TITLE, (STRPTR)"Datei", NULL, 0, 0, NULL},
+    {NM_ITEM, (STRPTR)"Kontakte...", (STRPTR)"K", 0, 0, NULL},
+    {NM_ITEM, NM_BARLABEL, NULL, 0, 0, NULL},
     {NM_ITEM, (STRPTR)"Konto-Einstellungen...", (STRPTR)"E", 0, 0, NULL},
     {NM_ITEM, (STRPTR)"\334ber AmiGmail...", NULL, 0, 0, NULL},
     {NM_ITEM, NM_BARLABEL, NULL, 0, 0, NULL},
@@ -106,6 +108,8 @@ static struct NewMenu menus_de[] = {
 
 static struct NewMenu menus_en[] = {
     {NM_TITLE, (STRPTR)"File", NULL, 0, 0, NULL},
+    {NM_ITEM, (STRPTR)"Contacts...", (STRPTR)"C", 0, 0, NULL},
+    {NM_ITEM, NM_BARLABEL, NULL, 0, 0, NULL},
     {NM_ITEM, (STRPTR)"Account settings...", (STRPTR)"E", 0, 0, NULL},
     {NM_ITEM, (STRPTR)"About AmiGmail...", NULL, 0, 0, NULL},
     {NM_ITEM, NM_BARLABEL, NULL, 0, 0, NULL},

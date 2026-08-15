@@ -57,6 +57,9 @@ enum ComposeGadgetId {
     GID_COMPOSE_TO = 200,
     GID_COMPOSE_CC,
     GID_COMPOSE_BCC,
+    GID_COMPOSE_TO_CONTACTS,
+    GID_COMPOSE_CC_CONTACTS,
+    GID_COMPOSE_BCC_CONTACTS,
     GID_COMPOSE_SUBJECT,
     GID_COMPOSE_BODY,
     GID_COMPOSE_BODY_SCROLL,
@@ -1035,6 +1038,14 @@ int compose_dialog(AmgGui *gui, ComposeMode mode,
                         STRINGA_MaxChars, 767,
                         STRINGA_TextVal, (ULONG)(uintptr_t)initial_to,
                     EndObject,
+                LAYOUT_AddChild, ButtonObject,
+                    GA_ID, GID_COMPOSE_TO_CONTACTS,
+                    GA_RelVerify, TRUE,
+                    GA_Text, "...",
+                EndObject,
+                CHILD_MinWidth, 30,
+                CHILD_MaxWidth, 30,
+                CHILD_WeightedWidth, 0,
                 EndObject,
             CHILD_WeightedHeight, 0,
 
@@ -1051,6 +1062,14 @@ int compose_dialog(AmgGui *gui, ComposeMode mode,
                         STRINGA_MaxChars, 767,
                         STRINGA_TextVal, (ULONG)(uintptr_t)initial_cc,
                     EndObject,
+                LAYOUT_AddChild, ButtonObject,
+                    GA_ID, GID_COMPOSE_CC_CONTACTS,
+                    GA_RelVerify, TRUE,
+                    GA_Text, "...",
+                EndObject,
+                CHILD_MinWidth, 30,
+                CHILD_MaxWidth, 30,
+                CHILD_WeightedWidth, 0,
                 EndObject,
             CHILD_WeightedHeight, 0,
 
@@ -1067,6 +1086,14 @@ int compose_dialog(AmgGui *gui, ComposeMode mode,
                         STRINGA_MaxChars, 767,
                         STRINGA_TextVal, (ULONG)(uintptr_t)initial_bcc,
                     EndObject,
+                LAYOUT_AddChild, ButtonObject,
+                    GA_ID, GID_COMPOSE_BCC_CONTACTS,
+                    GA_RelVerify, TRUE,
+                    GA_Text, "...",
+                EndObject,
+                CHILD_MinWidth, 30,
+                CHILD_MaxWidth, 30,
+                CHILD_WeightedWidth, 0,
                 EndObject,
             CHILD_WeightedHeight, 0,
 
@@ -1282,6 +1309,21 @@ int compose_dialog(AmgGui *gui, ComposeMode mode,
                                 } else {
                                     done = 1;
                                 }
+                                break;
+
+                            case GID_COMPOSE_TO_CONTACTS:
+                                gui_contacts_select_emails(
+                                    gui, window, to_gadget, error);
+                                break;
+
+                            case GID_COMPOSE_CC_CONTACTS:
+                                gui_contacts_select_emails(
+                                    gui, window, cc_gadget, error);
+                                break;
+
+                            case GID_COMPOSE_BCC_CONTACTS:
+                                gui_contacts_select_emails(
+                                    gui, window, bcc_gadget, error);
                                 break;
 
                             case GID_COMPOSE_BODY_SCROLL:

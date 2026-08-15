@@ -1,5 +1,6 @@
 #include "account.h"
 #include "codec.h"
+#include "contacts.h"
 #include "crypto.h"
 #include "imap_parser.h"
 #include "i18n.h"
@@ -408,6 +409,92 @@ static void test_account(void)
     CHECK(amg_account_validate(&account,&error)==AMG_OK);amg_account_set_secret(&account.app_password,"short");CHECK(amg_account_validate(&account,&error)==AMG_ERR_AUTH);amg_account_clear(&account);
 }
 
+
+static void test_contacts(void)
+{
+    const char *csv_path = "build/test-contacts.csv";
+    const char *vcf_path = "build/test-contacts.vcf";
+    const char *email_only_csv_path = "build/test-contacts-email-only.csv";
+    const char *db_path = "build/test-contacts.dat";
+    FILE *file;
+    AmgContactBook book, loaded, email_only_book;
+    AmgContactImportResult imported;
+    AmgError error;
+    const AmgContact *contact;
+
+    amg_contacts_init(&book);
+    amg_contacts_init(&loaded);
+    amg_contacts_init(&email_only_book);
+    memset(&error, 0, sizeof(error));
+
+    file = fopen(csv_path, "wb");
+    CHECK(file != NULL);
+    if (file) {
+        CHECK(fputs(
+            "First Name,Last Name,Organization Name,E-mail 1 - Value,Phone 1 - Label,Phone 1 - Value,Phone 2 - Label,Phone 2 - Value,Website 1 - Value,Address 1 - Formatted\n"
+            "Anna,Müller,ACME,anna@example.com,Mobile,+431111,Work,+432222,https://example.com,\"Street 1\nVienna\"\n"
+            "Anna,Müller,Other,ANNA@example.com,Mobile,+439999,,,,\n"
+            ",,Strba & Urban Installationen,,Other,+43 2213 30000 ::: +4322133000089,,,,\n",
+            file) >= 0);
+        CHECK(fclose(file) == 0);
+    }
+    CHECK(amg_contacts_import_csv(csv_path, &book, &imported, &error) == AMG_OK);
+    CHECK(imported.records == 3U);
+    CHECK(imported.imported == 2U);
+    CHECK(imported.duplicates == 1U);
+    CHECK(book.count == 2U);
+    contact = amg_contacts_find(&book, book.items[0].id);
+    CHECK(contact != NULL && !strcmp(contact->email, "anna@example.com"));
+    CHECK(contact != NULL && !strcmp(contact->mobile, "+431111"));
+    CHECK(contact != NULL && !strcmp(contact->phone, "+432222"));
+    if (contact) {
+        AmgContact same = *contact;
+        AmgContact same_without_email = *contact;
+        same_without_email.email[0] = 0;
+        CHECK(!amg_contacts_is_duplicate(&book, &same, same.id));
+        CHECK(amg_contacts_is_duplicate(&book, &same_without_email, 0UL));
+    }
+    CHECK(amg_contacts_save(db_path, &book, &error) == AMG_OK);
+    CHECK(amg_contacts_load(db_path, &loaded, &error) == AMG_OK);
+    CHECK(loaded.count == 2U);
+
+    file = fopen(vcf_path, "wb");
+    CHECK(file != NULL);
+    if (file) {
+        CHECK(fputs(
+            "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Müller;Anna;;;\r\nEMAIL:anna@example.com\r\nTEL;TYPE=CELL:+431111\r\nTEL;TYPE=WORK:+432222\r\nORG:ACME\r\nURL:https://example.com\r\nEND:VCARD\r\n"
+            "BEGIN:VCARD\r\nVERSION:3.0\r\nORG:Strba & Urban Installationen\r\nTEL:+43 2213 30000\r\nTEL:+4322133000089\r\nEND:VCARD\r\n",
+            file) >= 0);
+        CHECK(fclose(file) == 0);
+    }
+    CHECK(amg_contacts_import_vcf(vcf_path, &book, &imported, &error) == AMG_OK);
+    CHECK(imported.records == 2U);
+    CHECK(imported.imported == 0U);
+    CHECK(imported.duplicates == 2U);
+    CHECK(book.count == 2U);
+
+    file = fopen(email_only_csv_path, "wb");
+    CHECK(file != NULL);
+    if (file) {
+        CHECK(fputs("E-mail 1 - Value\nonly@example.com\n", file) >= 0);
+        CHECK(fclose(file) == 0);
+    }
+    CHECK(amg_contacts_import_csv(email_only_csv_path, &email_only_book,
+                                  &imported, &error) == AMG_OK);
+    CHECK(imported.records == 1U);
+    CHECK(imported.imported == 1U);
+    CHECK(email_only_book.count == 1U);
+    CHECK(!strcmp(email_only_book.items[0].email, "only@example.com"));
+
+    amg_contacts_free(&email_only_book);
+    amg_contacts_free(&loaded);
+    amg_contacts_free(&book);
+    remove(csv_path);
+    remove(vcf_path);
+    remove(email_only_csv_path);
+    remove(db_path);
+}
+
 static void test_i18n(void)
 {
     char text_buffer[64];
@@ -454,6 +541,6 @@ static void test_update(void)
 
 int main(void)
 {
-    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_mailto();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_i18n();test_update();
+    test_base64();test_quoted_printable();test_utf7();test_imap_parser();test_headers_and_rfc2047();test_mime();test_mailto();test_smtp();test_oauth();test_sha256();test_account();test_storage_metadata();test_contacts();test_i18n();test_update();
     printf("%u checks, %u failures\n",tests_run,tests_failed);return tests_failed?1:0;
 }

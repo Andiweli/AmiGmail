@@ -17,9 +17,10 @@
 
 #define T(de, en) amg_tr((de), (en))
 
-#define MENU_ACCOUNT FULLMENUNUM(0, 0, NOSUB)
-#define MENU_ABOUT FULLMENUNUM(0, 1, NOSUB)
-#define MENU_QUIT FULLMENUNUM(0, 3, NOSUB)
+#define MENU_CONTACTS FULLMENUNUM(0, 0, NOSUB)
+#define MENU_ACCOUNT FULLMENUNUM(0, 2, NOSUB)
+#define MENU_ABOUT FULLMENUNUM(0, 3, NOSUB)
+#define MENU_QUIT FULLMENUNUM(0, 5, NOSUB)
 #define MENU_EMPTY_TRASH FULLMENUNUM(1, 0, NOSUB)
 #define MENU_EMPTY_SPAM FULLMENUNUM(1, 1, NOSUB)
 
@@ -1023,6 +1024,9 @@ void handle_main_gadget(AmgGui *gui, ULONG gadget_id,
 void handle_menu(AmgGui *gui, ULONG menu_code, AmgError *error)
 {
     switch (menu_code) {
+        case MENU_CONTACTS:
+            gui_contacts_dialog(gui, error);
+            break;
         case MENU_ACCOUNT:
             account_dialog(gui, error);
             break;

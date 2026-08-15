@@ -1,5 +1,27 @@
 # AmiGmail Changelog
 
+## 1.6 – 2026-08-15
+
+- Programmversion auf 1.6 aktualisiert; Kontakte-/Adressbuch-Funktionsumfang als offizieller Release-Stand finalisiert
+- v58 Fokus-/TAB-Fix: Kontakteditor aktiviert das erste String-Gadget ueber `ActivateLayoutGadget()` innerhalb des ReAction-Layouts; TAB wechselt stabil durch alle sieben Kontaktfelder
+
+- v59 UI-Polish: Kontaktlisten verwenden nun dieselbe kompakte Zeilenhöhe wie Mail-/Label-Listen (`Screenfont-Höhe + 2`), damit Unterlängen wie `g`, `p`, `q` und `y` vollständig sichtbar bleiben
+- Vorname und Nachname haben identische Spaltenbreite; `LISTBROWSER_AutoFit` wurde für Kontaktlisten entfernt, damit ReAction die vorgesehenen 30/30/40-Spaltengewichte nicht inhaltsabhängig zusammenschiebt
+- das bisher wie ein deaktiviertes achtes Eingabefeld wirkende Statusfeld im Kontakteditor ist nun eine rahmenlose Status-/Validierungszeile
+
+- lokale Kontaktverwaltung als eigenes Modul (`contacts.c`, `contacts_import.c`, `gui_contacts.c`), getrennt von Gmail-, Netzwerk- und Account-Konfiguration
+- neuer Menüpunkt **Datei → Kontakte...** ganz oben im Datei-Menü, danach Separator und die bestehenden Einträge
+- Kontaktliste mit Vorname, Nachname und E-Mail-Adresse; Vor- und Nachname lassen sich per Spaltenkopf A–Z/Z–A sortieren
+- Kontakte können mit Vorname, Nachname, Firma, E-Mail-Adresse, Telefon, Mobiltelefon und Website neu angelegt und bearbeitet werden
+- Löschen verwendet den bestehenden AmiGmail-Bestätigungsdialog; Return/Enter bestätigt und Escape bricht eigene Kontaktfenster ab
+- CSV-Import für Google-Contacts-ähnliche Exporte mit korrekter Behandlung von Quotes, Kommas und mehrzeiligen Feldern
+- vCard/VCF-Import mit `N`, `ORG`, `EMAIL`, `TEL`, `URL`, gefalteten Zeilen sowie `itemN.TEL`/`X-ABLabel`-Mobiltelefonzuordnung
+- importiert werden ausschließlich die sieben von AmiGmail unterstützten Kontaktfelder; weitere CSV-/vCard-Daten werden bewusst ignoriert
+- Dublettenprüfung: gleiche E-Mail-Adresse (case-insensitiv), sonst Name plus übereinstimmende Telefonnummer bzw. bei Firmen Firma plus Telefonnummer; Dubletten werden übersprungen und nie automatisch überschrieben
+- Google-CSV-Mehrfachwerte im Format ` ::: ` werden für die einwertigen AmiGmail-Felder auf den ersten Wert reduziert
+- Kontaktdatei wird versioniert und getrennt als `ENVARC:AmiGmail/contacts.dat` gespeichert; Schreiben erfolgt über `.new` und einen rückrollbaren Replace-Schritt
+- Verfassen/Antworten/Entwurf bearbeiten: `[...]` neben An/CC/BCC öffnet eine Mehrfachauswahl aus Kontakten mit E-Mail-Adresse und ergänzt die Empfänger ohne vorhandene Adressen zu überschreiben oder doppelt einzutragen
+
 ## 1.5 – 2026-08-15
 
 - Programmversion auf 1.5 aktualisiert
