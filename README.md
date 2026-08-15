@@ -41,6 +41,7 @@ AmiGmail is a lightweight native **Gmail email client for AmigaOS 3.2+**. It pro
 - Version 1.4 saves the window position and size upon closing
 - Version 1.5 allows AmiGmail to be iconified
 - Version 1.5 allows notifications to play when new email(s) arrive
+- Version 1.6 introduced an Address book/Contacts with CSV/VCF import
 - Secure IMAP/SMTP connections through **AmiSSL**
 - German UI on German AmigaOS systems, English fallback otherwise
 - **No local email cache:** messages are read directly from Gmail via IMAP
