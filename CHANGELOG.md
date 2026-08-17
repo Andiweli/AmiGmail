@@ -1,5 +1,13 @@
 # AmiGmail Changelog
 
+## 1.7 – 2026-08-17
+
+- Programmversion auf 1.7 aktualisiert
+- Start-Benachrichtigung korrigiert: trifft während beendetem AmiGmail die erste neue Mail ein und lag die gespeicherte Inbox-Basis bei UID 0, wird sie beim nächsten Programmstart nun korrekt als neu erkannt
+- dadurch wird der konfigurierte Benachrichtigungston auch für diese erste neue Mail nach dem Start zuverlässig abgespielt
+- Workbench-Programmicon auf StackSize 100000 erhöht, um den auf dem getesteten AmigaOS-System beobachteten zu kleinen 4096-Byte-Stack zu vermeiden
+
+
 ## 1.6 – 2026-08-15
 
 - Programmversion auf 1.6 aktualisiert; Kontakte-/Adressbuch-Funktionsumfang als offizieller Release-Stand finalisiert

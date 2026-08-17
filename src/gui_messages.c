@@ -337,7 +337,7 @@ size_t message_uid_stats(const unsigned char *payload, size_t length,
            (result = amg_imap_fetch_record_next(
                 payload, length, &position, &record)) > 0) {
         if (record.uid > maximum) maximum = record.uid;
-        if (baseline && record.uid > baseline) ++newer;
+        if (record.uid > baseline) ++newer;
     }
     if (result < 0 && parse_error) *parse_error = result;
     if (max_uid) *max_uid = maximum;
