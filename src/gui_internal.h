@@ -28,6 +28,7 @@ struct DiskObject;
 #define GUI_MAIN_DEFAULT_HEIGHT 480L
 #define GUI_MAIN_MIN_WIDTH 620L
 #define GUI_MAIN_MIN_HEIGHT 320L
+#define GUI_SIGNATURE_MAX 2048U
 
 enum MainGadgetId {
     GID_NEW_MAIL = 1,
@@ -45,7 +46,8 @@ enum MainGadgetId {
     GID_PREVIEW_SCROLL,
     GID_SAVE_ATTACHMENTS,
     GID_STATUS,
-    GID_UPDATE
+    GID_UPDATE,
+    GID_REPLY_MENU
 };
 
 
@@ -60,7 +62,8 @@ typedef struct ComposeAttachment {
 typedef enum ComposeMode {
     COMPOSE_MODE_NEW = 0,
     COMPOSE_MODE_REPLY,
-    COMPOSE_MODE_EDIT_DRAFT
+    COMPOSE_MODE_EDIT_DRAFT,
+    COMPOSE_MODE_FORWARD
 } ComposeMode;
 
 typedef struct ComposeDraftSeed {
@@ -105,6 +108,7 @@ struct AmgGui {
     struct DiskObject *icon_iconified;
     struct Gadget *new_mail_gadget;
     struct Gadget *reply_gadget;
+    struct Gadget *reply_menu_gadget;
     struct Gadget *system_labels_gadget;
     struct Gadget *labels_gadget;
     struct Gadget *labels_scroller;
@@ -148,6 +152,7 @@ struct AmgGui {
     char move_source_mailbox_utf8[512];
     int move_pending;
     char reply_to_local[768];
+    char reply_cc_local[768];
     char reply_subject_local[512];
     char reply_body_local[GUI_REPLY_BODY_MAX];
     char reply_in_reply_to_utf8[512];
@@ -250,6 +255,10 @@ void gui_state_set_inbox_unseen(AmgGui *gui, unsigned long count);
 void gui_state_adjust_inbox_unseen(AmgGui *gui, long delta);
 void gui_state_load_inbox_notification(AmgGui *gui);
 void gui_state_save_inbox_notification(const AmgGui *gui);
+
+/* Signature preferences. */
+void gui_signature_load(char *buffer, size_t capacity);
+int gui_signature_save(const char *text);
 
 /* Workbench iconification and notification sound. */
 void gui_iconify(AmgGui *gui);
@@ -359,6 +368,11 @@ int prepare_draft_payload(AmgGui *gui, const unsigned char *payload,
                           AmgError *error);
 int prepare_reply_payload(AmgGui *gui, const unsigned char *payload,
                           size_t payload_length, AmgError *error);
+int prepare_reply_all_payload(AmgGui *gui, const unsigned char *payload,
+                              size_t payload_length, AmgError *error);
+int prepare_forward_payload(AmgGui *gui, const unsigned char *payload,
+                            size_t payload_length, unsigned long uid,
+                            ComposeDraftSeed *seed, AmgError *error);
 int compose_dialog(AmgGui *gui, ComposeMode mode,
                    ComposeDraftSeed *draft_seed, AmgError *error);
 

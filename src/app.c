@@ -6,6 +6,7 @@
 #include "i18n.h"
 #include "mailto.h"
 #include "storage.h"
+#include "splash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,6 +93,11 @@ int amg_app_run(int argc, char **argv)
         return 0;
     }
 
+    /* The splash appears only for the real primary instance. Mailto hand-off
+     * helper processes have already returned above, so browser clicks do not
+     * flash an unnecessary startup window. */
+    amg_splash_open();
+
     amg_account_init(&account);
 #if AMIGMAIL_AMIGA
     result = amg_storage_load_account(config, NULL, &account, &error);
@@ -105,12 +111,17 @@ int amg_app_run(int argc, char **argv)
 #endif
     gui = amg_gui_create(&account, &error);
     if (!gui) {
+        amg_splash_close();
         print_local_error(error.message);
         amg_mailto_server_destroy(mailto_server);
         amg_account_clear(&account);
         free(startup_mailto);
         return 20;
     }
+
+    /* All account/configuration data is loaded and the complete ReAction GUI
+     * object tree exists now. Hand over directly to the real main window. */
+    amg_splash_close();
     result = amg_gui_run(gui, mailto_server, startup_mailto, &error);
     if (result != AMG_OK) print_local_error(error.message);
     amg_gui_destroy(gui);

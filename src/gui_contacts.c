@@ -729,7 +729,7 @@ void gui_contacts_dialog(AmgGui *gui, AmgError *error)
         return;
     }
     dialog = WindowObject,
-        WA_Title, T("AmiGmail - Kontakte", "AmiGmail - Contacts"),
+        WA_Title, T("AmiGmail - Kontaktverwaltung", "AmiGmail - Contact management"),
         WA_Flags, WFLG_CLOSEGADGET | WFLG_DRAGBAR | WFLG_DEPTHGADGET |
                   WFLG_SIZEGADGET | WFLG_ACTIVATE,
         WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_RAWKEY,

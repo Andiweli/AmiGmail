@@ -1,5 +1,5 @@
 PROJECT := AmiGmail
-VERSION := 1.7
+VERSION := 1.8
 
 ifeq ($(origin CC),default)
 CC := m68k-amigaos-gcc
@@ -53,7 +53,7 @@ AMIGA_LDFLAGS := -m68020 -msoft-float -L"$(AMISSL_OS3_LIB)"
 AMISSL_EXTRA_LIBS ?=
 AMIGA_LIBS := $(AMISSL_EXTRA_LIBS) -Wl,--start-group -lc -lstubs -lamiga -Wl,--end-group
 
-SOURCES := src/main.c src/app.c src/common.c src/buffer.c src/account.c src/codec.c \
+SOURCES := src/main.c src/app.c src/splash.c src/common.c src/buffer.c src/account.c src/codec.c \
            src/crypto.c src/imap_parser.c src/mime.c src/mailto.c src/oauth.c src/tls.c src/update.c \
            src/imap.c src/smtp.c src/storage.c src/contacts.c src/contacts_import.c src/network_task.c src/gui.c src/gui_runtime.c src/gui_actions.c src/gui_mailto.c \
            src/gui_window.c src/iconified_data.c src/gui_state.c src/gui_update.c src/gui_notify.c src/gui_dialogs.c src/gui_contacts.c src/gui_compose.c src/gui_folders.c src/gui_messages.c src/gui_preview.c src/charset.c src/i18n.c src/banner_data.c

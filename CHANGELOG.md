@@ -1,48 +1,63 @@
 # AmiGmail Changelog
 
+## 1.8 – 2026-08-18
+
+- Program version updated to 1.8
+- Reply button implemented as a compact split button: the main action remains **Reply**, while the dropdown offers **Reply All** and **Forward**
+- **Reply All** places the sender in To and additional recipients in CC; the user's own Gmail address and duplicate recipients are removed case-insensitively
+- **Forward** opens a new message without prefilled recipients, creates an appropriate `Fwd:` subject, and includes the original message text and existing MIME attachments within the existing size limits
+- New **Signature** management under **Edit**; signatures are stored locally in `ENVARC:AmiGmail/signature.txt` and are inserted automatically when composing new messages, replying, replying to all, and forwarding
+- Compact signature editor with a TextEditor field sized for approximately 60 characters × 5 lines; Return/Enter or the buttons save, Escape cancels
+- Menu structure revised: **Contact management** is now the first entry under **Edit**, followed by **Signature**, then a separator and the existing actions for emptying Trash and Spam
+- Contacts window renamed to **AmiGmail - Contact management**
+- Message column widths intentionally remain at their defined defaults; the experimentally tested persistent column-width storage was removed completely
+- New centered **ReAction splash screen** during startup using the embedded AmiGmail header graphic, current version number, localized AmigaOS 3.2 client line, and copyright notice
+- Splash screen uses the normal application/screen font, left-aligned text, and a subtle frame; required ReAction classes are opened with separate temporary library references without corrupting the library bases used later by the main GUI
+- Splash screen and About window now show the copyright as **© Andreas Stürmer**
+- About window and splash screen use the central `AMIGMAIL_VERSION` value so the displayed version number automatically follows future releases
+
 ## 1.7 – 2026-08-17
 
-- Programmversion auf 1.7 aktualisiert
-- Start-Benachrichtigung korrigiert: trifft während beendetem AmiGmail die erste neue Mail ein und lag die gespeicherte Inbox-Basis bei UID 0, wird sie beim nächsten Programmstart nun korrekt als neu erkannt
-- dadurch wird der konfigurierte Benachrichtigungston auch für diese erste neue Mail nach dem Start zuverlässig abgespielt
-- Workbench-Programmicon auf StackSize 100000 erhöht, um den auf dem getesteten AmigaOS-System beobachteten zu kleinen 4096-Byte-Stack zu vermeiden
-
+- Program version updated to 1.7
+- Fixed the notification sound for the first new mail after a restart: a valid stored Inbox baseline with `UID 0` is now correctly distinguished from “no baseline available yet”
+- This also reliably handles the case where AmiGmail is closed with an empty Inbox and the first new message arrives while the program is not running
+- Existing UID/UIDVALIDITY logic for normal startup fetches and already known messages remains unchanged
+- Recommended Workbench stack for release use increased to **100000 bytes**; values below approximately 65000 bytes should be avoided
+- Version identifiers in the program, Makefile, and binary version string updated to 1.7
 
 ## 1.6 – 2026-08-15
 
-- Programmversion auf 1.6 aktualisiert; Kontakte-/Adressbuch-Funktionsumfang als offizieller Release-Stand finalisiert
-- v58 Fokus-/TAB-Fix: Kontakteditor aktiviert das erste String-Gadget ueber `ActivateLayoutGadget()` innerhalb des ReAction-Layouts; TAB wechselt stabil durch alle sieben Kontaktfelder
-
-- v59 UI-Polish: Kontaktlisten verwenden nun dieselbe kompakte Zeilenhöhe wie Mail-/Label-Listen (`Screenfont-Höhe + 2`), damit Unterlängen wie `g`, `p`, `q` und `y` vollständig sichtbar bleiben
-- Vorname und Nachname haben identische Spaltenbreite; `LISTBROWSER_AutoFit` wurde für Kontaktlisten entfernt, damit ReAction die vorgesehenen 30/30/40-Spaltengewichte nicht inhaltsabhängig zusammenschiebt
-- das bisher wie ein deaktiviertes achtes Eingabefeld wirkende Statusfeld im Kontakteditor ist nun eine rahmenlose Status-/Validierungszeile
-
-- lokale Kontaktverwaltung als eigenes Modul (`contacts.c`, `contacts_import.c`, `gui_contacts.c`), getrennt von Gmail-, Netzwerk- und Account-Konfiguration
-- neuer Menüpunkt **Datei → Kontakte...** ganz oben im Datei-Menü, danach Separator und die bestehenden Einträge
-- Kontaktliste mit Vorname, Nachname und E-Mail-Adresse; Vor- und Nachname lassen sich per Spaltenkopf A–Z/Z–A sortieren
-- Kontakte können mit Vorname, Nachname, Firma, E-Mail-Adresse, Telefon, Mobiltelefon und Website neu angelegt und bearbeitet werden
-- Löschen verwendet den bestehenden AmiGmail-Bestätigungsdialog; Return/Enter bestätigt und Escape bricht eigene Kontaktfenster ab
-- CSV-Import für Google-Contacts-ähnliche Exporte mit korrekter Behandlung von Quotes, Kommas und mehrzeiligen Feldern
-- vCard/VCF-Import mit `N`, `ORG`, `EMAIL`, `TEL`, `URL`, gefalteten Zeilen sowie `itemN.TEL`/`X-ABLabel`-Mobiltelefonzuordnung
-- importiert werden ausschließlich die sieben von AmiGmail unterstützten Kontaktfelder; weitere CSV-/vCard-Daten werden bewusst ignoriert
-- Dublettenprüfung: gleiche E-Mail-Adresse (case-insensitiv), sonst Name plus übereinstimmende Telefonnummer bzw. bei Firmen Firma plus Telefonnummer; Dubletten werden übersprungen und nie automatisch überschrieben
-- Google-CSV-Mehrfachwerte im Format ` ::: ` werden für die einwertigen AmiGmail-Felder auf den ersten Wert reduziert
-- Kontaktdatei wird versioniert und getrennt als `ENVARC:AmiGmail/contacts.dat` gespeichert; Schreiben erfolgt über `.new` und einen rückrollbaren Replace-Schritt
-- Verfassen/Antworten/Entwurf bearbeiten: `[...]` neben An/CC/BCC öffnet eine Mehrfachauswahl aus Kontakten mit E-Mail-Adresse und ergänzt die Empfänger ohne vorhandene Adressen zu überschreiben oder doppelt einzutragen
+- Program version updated to 1.6; contacts/address book functionality finalized as the official release state
+- v58 focus/TAB fix: the contact editor activates the first string gadget through `ActivateLayoutGadget()` inside the ReAction layout; TAB now cycles reliably through all seven contact fields
+- v59 UI polish: contact lists now use the same compact row height as mail/label lists (`Screen font height + 2`), so descenders such as `g`, `p`, `q`, and `y` remain fully visible
+- First name and last name now use identical column widths; `LISTBROWSER_AutoFit` was removed from contact lists so ReAction no longer compresses the intended 30/30/40 column weights based on content
+- The status field in the contact editor, which previously looked like a disabled eighth input field, is now a borderless status/validation line
+- Local contact management implemented as separate modules (`contacts.c`, `contacts_import.c`, `gui_contacts.c`), isolated from Gmail, networking, and account configuration
+- New **File → Contacts...** menu item added at the top of the File menu, followed by a separator and the existing entries
+- Contact list with first name, last name, and email address; first and last name can be sorted A–Z/Z–A via the column headers
+- Contacts can be created and edited with first name, last name, company, email address, phone, mobile phone, and website
+- Deletion uses the existing AmiGmail confirmation dialog; Return/Enter confirms and Escape cancels in dedicated contact windows
+- CSV import for Google Contacts-like exports with correct handling of quotes, commas, and multiline fields
+- vCard/VCF import with `N`, `ORG`, `EMAIL`, `TEL`, `URL`, folded lines, and `itemN.TEL`/`X-ABLabel` mobile-phone mapping
+- Only the seven contact fields supported by AmiGmail are imported; additional CSV/vCard data is intentionally ignored
+- Duplicate detection: same email address (case-insensitive), otherwise name plus matching phone number, or for companies company plus phone number; duplicates are skipped and never overwritten automatically
+- Google CSV multi-value fields in the ` ::: ` format are reduced to the first value for AmiGmail's single-value fields
+- Contact file is versioned and stored separately as `ENVARC:AmiGmail/contacts.dat`; writes use `.new` plus a rollback-capable replacement step
+- Compose/Reply/Edit Draft: `[...]` next to To/CC/BCC opens a multi-selection list of contacts with email addresses and adds recipients without overwriting existing addresses or creating duplicates
 
 ## 1.5 – 2026-08-15
 
-- Programmversion auf 1.5 aktualisiert
-- echtes ReAction/Workbench-Iconify stabilisiert; AmiGmail verwendet im iconifizierten Zustand das eingebettete `AmiGmail-Iconified.info`
-- periodischer 5-Minuten-Abruf, Gmail-Netzwerk-Worker und `AmiGmailStatus` laufen auch iconifiziert weiter
-- optionaler Benachrichtigungston fuer neue Mails mit Dateiauswahl fuer IFF/8SVX/WAV; 8SVX-Wiedergabe ueber `datatypes.library`/`sound.datatype` bestaetigt
-- Konfigurations-Speichern blockiert die GUI nicht mehr; insbesondere kann ein veraltetes `timer.device`-Signal keinen neuen 5-Minuten-Timer mehr per `WaitIO()` festhalten
-- Speichern lokaler Einstellungen startet den periodischen Timer nur neu, wenn sich die 5-Minuten-Option tatsaechlich geaendert hat
-- bestehende Gmail-Verbindung bleibt bei rein lokalen Konfigurationsaenderungen erhalten
+- Program version updated to 1.5
+- Real ReAction/Workbench iconify behavior stabilized; AmiGmail uses the embedded `AmiGmail-Iconified.info` while iconified
+- Periodic five-minute fetching, the Gmail network worker, and `AmiGmailStatus` continue running while the application is iconified
+- Optional new-mail notification sound with file selection for IFF/8SVX/WAV; 8SVX playback via `datatypes.library`/`sound.datatype` confirmed
+- Saving configuration no longer blocks the GUI; in particular, a stale `timer.device` signal can no longer trap a new five-minute timer in `WaitIO()`
+- Saving local preferences restarts the periodic timer only when the five-minute option actually changes
+- Existing Gmail connections remain active when only local configuration values are changed
 
 ## v55 development fix (config-save freeze / stable iconify)
 
-- Fixed the configuration-save freeze with periodic 5-minute fetching enabled.
+- Fixed the configuration-save freeze with periodic five-minute fetching enabled.
   The timer event loop now calls `WaitIO()` only after `CheckIO()` confirms that
   the current timer request has actually completed; stale timer signals are
   cleared explicitly.
@@ -57,11 +72,11 @@
   notification/iconify resource.
 - Notification sound playback from v54 is retained unchanged.
 
-# Änderungsprotokoll
+# Change log
 
 ### v54 development fix (Reconnect / dynamic AppIcon / sound playback)
 
-- Account settings no longer synchronously stop/restart the network process. Local-only changes such as notification sound, fetch-on-start and the 5-minute toggle keep the existing Gmail connection alive.
+- Account settings no longer synchronously stop/restart the network process. Local-only changes such as notification sound, fetch-on-start and the five-minute toggle keep the existing Gmail connection alive.
 - Network-relevant account changes are applied through a new asynchronous `AMG_NET_RECONFIGURE` worker command, so the ReAction GUI remains responsive while Gmail reconnects.
 - Both supplied Workbench icons are embedded byte-for-byte: normal `AmiGmail.info` (6224 bytes) and `AmiGmail-Iconified.info` (6196 bytes).
 - The iconified Workbench AppIcon now follows the same unread-Inbox state as `AmiGmailStatus`: normal icon at zero unread mails, new-mail icon at one or more unread mails.
@@ -80,100 +95,94 @@
 
 ## 1.4 – 2026-08-14
 
-- echtes ReAction/Workbench-Iconify-Gadget ergänzt; AmiGmail wird als Workbench-AppIcon abgelegt und lässt sich per Doppelklick wiederherstellen, ohne den Prozess zu beenden
-- periodischer 5-Minuten-Abruf, Netzwerk-Worker, Update-Prüfung und ENV-Mailstatus laufen auch im iconifizierten Zustand weiter; GUI-Modelle werden ohne offenen Intuition-Window-Pointer sicher aktualisiert
-- `mailto:` während AmiGmail iconifiziert ist stellt das Hauptfenster zuerst wieder her und öffnet anschließend das Verfassen-Fenster wie gewohnt im Vordergrund
-- optionale Konfiguration `Benachrichtigungston` / `Notification Sound` mit ASL-Dateiauswahl für IFF/8SVX ergänzt und mit den Kontoeinstellungen gespeichert
-- neuer Mailton wird über `datatypes.library`/`sound.datatype` asynchron abgespielt: einmal pro Abruf mit tatsächlich neuen UIDs, auch im iconifizierten Zustand; bereits vorhandene Mails beim ersten Basisabruf bleiben stumm
-- Fensterzustand korrigiert: window.class-Innenmasse werden getrennt von den aeusseren Intuition-Massen gespeichert, damit Breite und Hoehe pixelgenau wiederhergestellt werden
-- Update-Anzeige im Header als kompakter zweizeiliger Status aufgebaut: transparenter Text `Version 1.4` plus `Aktuelle Version` / `Up to date`; bei neuem Release `Neues Update` / `new Update`
-- deaktiviertes Ghost-/Punktmuster entfernt; der Status verwendet stattdessen `GA_ReadOnly` und einen dezenten duennen Buttonrahmen
-- Update-Farbe von Vollrot auf ein dezentes Dunkelblau (`#003366`, soweit die Workbench-Palette dies abbilden kann) geaendert
-- `AmiGmailStatus` meldet `Keine neue(n) Mail(s)` / `No new Mail` oder `Neue Mail(s) im Posteingang` / `New mail(s) in Inbox`; beim Beenden sowie nach einem Neustart bleibt `AmiGmail nicht aktiv` / `AmiGmail is not active` ueber ENVARC: erhalten
-- einmalige, nicht blockierende GitHub-Release-Pruefung pro Programmstart mit numerischem Vergleich von Tags wie `v1.4` und `v1.10`
-- Update-Download folgt dem Release-Schema `AmiGmail-vX.Y.lha` und speichert das Archiv unveraendert nach `RAM:`; Entpacken und Installation bleiben bewusst manuell
-- globale Laufzeitvariable `AmiGmailStatus` signalisiert ungelesene Inbox-Mails und wird beim Lesen, Ungelesen-Markieren, Verschieben, Loeschen sowie periodischen Abruf nachgefuehrt
-- Update-Check nutzt den vorhandenen Netzwerk-Worker und bleibt bei Netzwerk-/GitHub-Fehlern still, damit die GUI nicht blockiert wird
+- Added real ReAction/Workbench iconify gadget; AmiGmail becomes a Workbench AppIcon and can be restored by double-clicking it without terminating the process
+- Periodic five-minute fetching, network worker, update check, and ENV mail status continue running while iconified; GUI models are updated safely without an open Intuition window pointer
+- `mailto:` calls received while AmiGmail is iconified restore the main window first and then open the Compose window in the foreground as usual
+- Added optional **Notification Sound** configuration with ASL file selection for IFF/8SVX and persistent account storage
+- New-mail sound is played asynchronously through `datatypes.library`/`sound.datatype`: once per fetch containing genuinely new UIDs, including while iconified; existing messages found during the first baseline fetch remain silent
+- Fixed window-state persistence: window.class inner dimensions are stored separately from the outer Intuition dimensions so width and height are restored pixel-perfectly
+- Update display in the header reworked as a compact two-line status: transparent `Version 1.4` text plus `Up to date`; when a newer release exists, `new Update` is shown
+- Removed the disabled ghost/dither pattern; the status now uses `GA_ReadOnly` and a subtle thin button frame
+- Update color changed from bright red to a subtle dark blue (`#003366`, as closely as the Workbench palette allows)
+- `AmiGmailStatus` reports `No new Mail` or `New mail(s) in Inbox`; after quitting and after restart, `AmiGmail is not active` remains stored via ENVARC:
+- Added a one-time non-blocking GitHub release check per program start with numeric comparison of tags such as `v1.4` and `v1.10`
+- Update download follows the release naming scheme `AmiGmail-vX.Y.lha` and saves the archive unchanged to `RAM:`; extraction and installation intentionally remain manual
+- Global runtime variable `AmiGmailStatus` reports unread Inbox mail and is updated when reading, marking unread, moving, deleting, and during periodic fetching
+- Update checking uses the existing network worker and stays silent on network/GitHub failures so the GUI is never blocked
 
 ## 1.3 – 2026-08-14
 
-- Programmversion auf 1.3 aktualisiert
-- `mailto:`-Integration für Browser/andere Programme; Empfänger, CC/BCC, Betreff und Nachrichtentext können vorbelegt werden
-- bereits laufendes AmiGmail übernimmt `mailto:`-Aufrufe über einen eigenen Exec-Port, ohne eine zweite IMAP-/SMTP-Sitzung zu starten
-- IBrowse-Mailto-Aufrufe blockieren den Browser nicht; das Fenster „Neue Mail“ wird zuverlässig in den Vordergrund gebracht
-- Escape bricht die Ordnerauswahl beim Verschieben einer Mail ab
-- URL-Doppelklick in der Mailvorschau öffnet OpenURL außerhalb des TextEditor-Hooks und blockiert ReAction nicht
-- Bestätigungsfenster für „Papierkorb leeren“ und „Spam leeren“ werden direkt mittig geöffnet
-- große `gui.c` in klar getrennte Module für Ordner, Nachrichten, Vorschau, Fensteraufbau, Aktionen und Runtime/Eventloop zerlegt
-- konservativer Compiler-Warning-Cleanup für Hook-/Tag-Pointer, Sprachvariable, Timer-Gerätename und Baumkoordinaten
+- Program version updated to 1.3
+- Added `mailto:` integration for browsers and other applications; recipient, CC/BCC, subject, and message body can be prefilled
+- An already running AmiGmail instance accepts `mailto:` calls through its own Exec port without starting a second IMAP/SMTP session
+- IBrowse mailto calls no longer block the browser; the New Mail window is reliably brought to the foreground
+- Escape cancels folder selection when moving a message
+- Double-clicking a URL in the mail preview opens OpenURL outside the TextEditor hook and no longer blocks ReAction
+- Confirmation windows for Empty Trash and Empty Spam open centered immediately
+- Large `gui.c` split into clearly separated modules for folders, messages, preview, window construction, actions, and runtime/event loop
+- Conservative compiler-warning cleanup for hook/tag pointers, language variable, timer device name, and tree coordinates
 
 ## 1.2 – 2026-08-14
 
-- Programmversion auf 1.2 aktualisiert
-- Return/Enter bestätigt die eigenen ReAction-Requester; Escape bricht sie ab
-- Im Ordner Entwürfe wird Antworten zu Bearbeiten/Edit
-- bestehende Gmail-Entwürfe lassen sich mit Empfängern, CC/BCC, Betreff, Text und Anlagen weiterbearbeiten
-- erneutes Speichern eines bearbeiteten Entwurfs ersetzt serverseitig den alten Draft; bei fehlgeschlagenem APPEND bleibt der alte Draft erhalten
-- Senden eines bearbeiteten Entwurfs entfernt den alten Draft erst nach erfolgreichem SMTP-Versand
-- Im Ordner Gesendet zeigt die zweite Datenspalte Empfänger/Recipient und verwendet To (mit Cc/Bcc-Fallback) statt des eigenen Absenders
-- Multipart-Entwürfe mit Anlage und leerem Nachrichtentext werden korrekt als gültiger leerer Textteil erkannt und lassen sich wieder bearbeiten
+- Program version updated to 1.2
+- Return/Enter confirms AmiGmail's own ReAction requesters; Escape cancels them
+- In the Drafts folder, Reply changes to Edit
+- Existing Gmail drafts can be reopened with recipients, CC/BCC, subject, text, and attachments restored
+- Saving an edited draft again replaces the old server-side draft; if APPEND fails, the old draft is retained
+- Sending an edited draft removes the old draft only after successful SMTP delivery
+- In Sent, the second data column displays Recipient and uses To, with Cc/Bcc fallback, instead of the user's own sender address
+- Multipart drafts with an attachment and an empty message body are correctly recognized as having a valid empty text part and can be edited again
 
 ## 1.1 – 2026-08-13
 
-- Programmversion auf 1.1 aktualisiert
-- Markierungsspalte: Rufzeichen im Spaltenkopf pixelgenau um 1 px nach links gesetzt
-- About-Fenster zeigt AmiGmail 1.1
-- gut auffindbare Binärkennung für AmiGmail Client 1.1 ergänzt
+- Program version updated to 1.1
+- Flag column: exclamation mark in the column header moved exactly 1 px to the left
+- About window displays AmiGmail 1.1
+- Added an easily discoverable binary identifier for AmiGmail Client 1.1
 
 ## 1.0 – 2026-08-13
 
-- optionale periodische Inbox-Prüfung alle fünf Minuten; nach gesetzter UID-Basis werden nur neuere Nachrichten abgefragt
-- „Periodischer Abruf (5 Min.)“ wird zusammen mit den Konto-Einstellungen gespeichert
-- deutsche Oberfläche bei deutscher AmigaOS-Systemsprache, sonst vollständiger englischer Fallback
-- Menüs, Hauptfenster, Konto-/Compose-Dialoge, Requester, Statusmeldungen und Protokollfehler sind Deutsch/Englisch lokalisiert
-- eingebettetes 170×28-Banner wird direkt aus der 8-Farben-PNG als unkomprimiertes 3-Bitplane-ILBM erzeugt
-- erste Developer-Preview für AmigaOS 3.2/68k mit ReAction-Grundlayout
-- asynchroner Netzwerkprozess über Exec Message Ports
-- AmiSSL-v5-TLS mit Zertifikats- und Hostnamenprüfung
-- Gmail-IMAP-Anmeldung mit XOAUTH2 oder App-Passwort
-- Labelermittlung, UID-basierter Seitenabruf und Gmail-IMAP-Erweiterungen
-- MIME-, RFC-2047-, Base64-, Quoted-Printable- und Modified-UTF-7-Codecs
-- SMTP-Antworten über direktes TLS mit Threading-Headern
-- OAuth-2.0-PKCE-, Token-Exchange- und Refresh-Bausteine
-- AES-256-GCM-Kontospeicher mit PBKDF2-Schlüsselableitung
-- portable Hosttests und MSYS-/AmigaGCC-Makefile
-- Nachrichten-Vorschau markiert ungelesene Mails automatisch als gelesen
-- Schaltfläche „Un/Gelesen“ setzt den IMAP-Lesestatus für die Auswahl
-- Antwortfenster mit vorbelegtem Empfänger, Betreff, Zitat und Thread-Headern
-- Löschen nach Bestätigung verschiebt eine oder mehrere ausgewählte Mails in
-  den Gmail-Papierkorb; Mehrfachauswahl erfolgt mit Umschalt/Shift
-- kompakte native Auf-/Zuklapp-Symbole und bündige Texte im Labelbaum
-- die Auswahlmarkierung bleibt beim automatischen Setzen auf „gelesen“ erhalten
-- der Löschdialog öffnet mittig über dem AmiGmail-Hauptfenster
-- zusätzliche Gmail-Sonderflags und lokalisierte Namen ordnen Spam und Entwürfe
-  zuverlässig den Systemordnern zu
-- „Markiert“ ist ausgeblendet; Statuszeilen der Nachrichtenliste stehen
-  zentriert und umgebrochen in der Betreffspalte
-- transparente, kleinere Chevron-Pfeile zeigen nach rechts beziehungsweise unten
-- Start-Fix: `drawlist.image` ist nur noch optional und wird ohne
-  Mindestversion geöffnet; fehlt die Klasse, verwendet ReAction automatisch
-  seine eingebauten Hierarchie-Pfeile
-- kompakter Löschdialog ohne unnötigen vertikalen Leerraum
-- die angeklickte Nachrichtenzeile bleibt auch nach Vorschau und automatischer
-  Gelesen-Markierung sichtbar ausgewählt
-- gefüllte transparente 5×6-Pixel-Chevrons entsprechen dem gelieferten Vorbild
-- IMAP hält eine serverseitig ermittelte Sonderordner-Tabelle und löst
-  `\\Drafts` sowie `\\Spam` vor `SELECT` zum tatsächlichen Gmail-Mailboxnamen auf
+- Optional periodic Inbox check every five minutes; after establishing the UID baseline, only newer messages are requested
+- `Periodic fetch (5 min.)` is stored together with the account settings
+- German interface when the AmigaOS system language is German, otherwise a complete English fallback
+- Menus, main window, account/compose dialogs, requesters, status messages, and protocol errors are localized in German and English
+- Embedded 170×28 banner generated directly from the 8-color PNG as an uncompressed 3-bitplane ILBM
+- First developer preview for AmigaOS 3.2/68k with basic ReAction layout
+- Asynchronous network process using Exec Message Ports
+- AmiSSL v5 TLS with certificate and hostname verification
+- Gmail IMAP login using XOAUTH2 or app password
+- Label discovery, UID-based paged fetching, and Gmail IMAP extensions
+- MIME, RFC 2047, Base64, Quoted-Printable, and Modified UTF-7 codecs
+- SMTP replies over direct TLS with threading headers
+- OAuth 2.0 PKCE, token exchange, and refresh building blocks
+- AES-256-GCM account storage with PBKDF2 key derivation
+- Portable host tests and MSYS/AmigaGCC Makefile
+- Message preview automatically marks unread mail as read
+- `Read/Unread` button toggles the IMAP read state for the selection
+- Reply window with prefilled recipient, subject, quote, and thread headers
+- Delete after confirmation moves one or more selected messages to Gmail Trash; multi-selection uses Shift
+- Compact native expand/collapse symbols and aligned text in the label tree
+- Selection highlight remains intact when a message is automatically marked as read
+- Delete dialog opens centered over the AmiGmail main window
+- Additional Gmail special flags and localized names reliably map Spam and Drafts to the corresponding system folders
+- Starred is hidden; status rows in the message list are centered and wrapped in the Subject column
+- Transparent smaller chevrons point right or down
+- Startup fix: `drawlist.image` is now optional and is opened without a minimum version; if the class is missing, ReAction automatically falls back to its built-in hierarchy arrows
+- Compact delete dialog without unnecessary vertical whitespace
+- The clicked message row remains visibly selected after preview and automatic marking as read
+- Filled transparent 5×6-pixel chevrons match the supplied reference
+- IMAP keeps a server-detected special-folder table and resolves `\Drafts` and `\Spam` to the actual Gmail mailbox name before `SELECT`
 
 ### v51 - Sound requester and iconify icon polish
-- Fixed the notification-sound ASL filter: ASLFR_AcceptPattern now receives a pattern tokenized with ParsePatternNoCase(), as required by asl.library.
-- The sound requester now displays .iff, .8svx and .wav files case-insensitively.
-- The iconified Workbench window now prefers PROGDIR:AmiGmail-Iconify.info, falls back to PROGDIR:AmiGmail.info, then to window.class' default icon.
+
+- Fixed the notification-sound ASL filter: `ASLFR_AcceptPattern` now receives a pattern tokenized with `ParsePatternNoCase()`, as required by asl.library.
+- The sound requester now displays `.iff`, `.8svx` and `.wav` files case-insensitively.
+- The iconified Workbench window now prefers `PROGDIR:AmiGmail-Iconify.info`, falls back to `PROGDIR:AmiGmail.info`, then to window.class' default icon.
 - The titlebar iconify gadget itself remains the system-provided ReAction/window.class gadget.
 
-### v53 - embedded iconify icon
+### v53 - Embedded iconify icon
+
 - The supplied `AmiGmail-Iconified.info` is now embedded byte-for-byte in the AmiGmail executable.
 - No separate iconify `.info` file is required in `PROGDIR:` or the release archive.
-- AmiGmail materialises the embedded icon only briefly in `T:` so `icon.library` can build the native `DiskObject`, then deletes the temporary file immediately.
+- AmiGmail materializes the embedded icon only briefly in `T:` so `icon.library` can build the native `DiskObject`, then deletes the temporary file immediately.
 - The normal `AmiGmail.info` remains only as a safety fallback if the embedded icon cannot be loaded.
-
