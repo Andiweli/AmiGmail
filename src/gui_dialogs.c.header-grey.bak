@@ -49,8 +49,6 @@
 #define ACCOUNT_DRAWER "ENVARC:AmiGmail"
 #define GUI_ACCOUNT_FIELD_GAP 1
 #define GUI_ACCOUNT_LABEL_WIDTH 150
-#define GUI_ABOUT_BANNER_WIDTH 170L
-#define GUI_ABOUT_BANNER_HEIGHT 28L
 #define T(de, en) amg_tr((de), (en))
 
 enum AccountGadgetId {
@@ -926,29 +924,17 @@ int account_dialog(AmgGui *gui, AmgError *error)
     return changed;
 }
 
-static UWORD about_header_fill_pattern[2] = {0xffffU, 0xffffU};
-
 static void draw_about_banner(AmgGui *gui, struct Window *window,
                               Object *banner_slot)
 {
     struct Gadget *gadget;
     if (!gui || !window || !banner_slot) return;
-    LONG banner_top;
     gadget = (struct Gadget *)banner_slot;
-
-    /* The header row follows the selected Workbench font. Keep the fixed
-     * 170x28 artwork vertically centred when three text lines make the row
-     * taller than the bitmap itself. */
-    banner_top = (LONG)gadget->TopEdge;
-    if ((LONG)gadget->Height > GUI_ABOUT_BANNER_HEIGHT)
-        banner_top +=
-            ((LONG)gadget->Height - GUI_ABOUT_BANNER_HEIGHT) / 2L;
-
     draw_embedded_banner_at(gui, window,
                             (LONG)gadget->LeftEdge,
-                            banner_top,
-                            GUI_ABOUT_BANNER_WIDTH,
-                            GUI_ABOUT_BANNER_HEIGHT);
+                            (LONG)gadget->TopEdge,
+                            (LONG)gadget->Width,
+                            (LONG)gadget->Height);
 }
 
 void about_dialog(AmgGui *gui)
@@ -959,16 +945,12 @@ void about_dialog(AmgGui *gui)
     ULONG signal_mask = 0;
     LONG font_height = 8L;
     LONG line_height;
-    LONG header_height;
     int done = 0;
 
     if (!gui || !gui->window || !gui->screen) return;
     if (gui->screen->Font && gui->screen->Font->ta_YSize)
         font_height = (LONG)gui->screen->Font->ta_YSize;
     line_height = font_height + 2L;
-    header_height = line_height * 3L;
-    if (header_height < GUI_ABOUT_BANNER_HEIGHT)
-        header_height = GUI_ABOUT_BANNER_HEIGHT;
 
     banner_slot = HGroupObject,
         LAYOUT_SpaceOuter, FALSE,
@@ -997,17 +979,12 @@ void about_dialog(AmgGui *gui)
             LAYOUT_AddChild, HGroupObject,
                 LAYOUT_SpaceOuter, FALSE,
                 LAYOUT_SpaceInner, TRUE,
-                /* One continuous #888888 header band behind both the logo
-                 * and the three transparent ReAction text labels. */
-                LAYOUT_FillPen, gui->banner_pens[0],
-                LAYOUT_FillPattern,
-                    (ULONG)(uintptr_t)about_header_fill_pattern,
                 LAYOUT_AddChild, banner_slot,
-                CHILD_MinWidth, GUI_ABOUT_BANNER_WIDTH,
-                CHILD_MaxWidth, GUI_ABOUT_BANNER_WIDTH,
+                CHILD_MinWidth, 170,
+                CHILD_MaxWidth, 170,
                 CHILD_WeightedWidth, 0,
-                CHILD_MinHeight, header_height,
-                CHILD_MaxHeight, header_height,
+                CHILD_MinHeight, 28,
+                CHILD_MaxHeight, 28,
                 CHILD_WeightedHeight, 0,
                 LAYOUT_AddChild, VGroupObject,
                     LAYOUT_SpaceOuter, FALSE,

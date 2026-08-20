@@ -16,7 +16,21 @@
 #include <openssl/evp.h>
 #endif
 
-#define STORAGE_ITERATIONS 100000
+/*
+ * AmiGmail 1.8 wrote 100000 PBKDF2-HMAC-SHA256 iterations and also hardcoded
+ * the same value while reading, despite already storing an iterations= field.
+ * On slow/emulated classic 68k systems that synchronous KDF can make the
+ * ReAction account requester look completely frozen.
+ *
+ * New files use a classic-68k-friendly value.  The loader honours the value
+ * stored in each file and falls back to the original 100000 iterations when
+ * reading legacy files that do not contain the field.  Existing 1.8 account
+ * files therefore remain compatible.
+ */
+#define STORAGE_LEGACY_ITERATIONS 100000UL
+#define STORAGE_WRITE_ITERATIONS 5000UL
+#define STORAGE_MIN_ITERATIONS 1000UL
+#define STORAGE_MAX_ITERATIONS 1000000UL
 #define STORAGE_HEADER "AMIGMAIL-ACCOUNT-1\n"
 
 static const char hex_digits[]="0123456789abcdef";
@@ -66,9 +80,10 @@ static void discard_file(const char *path)
 
 #if AMIGMAIL_AMIGA
 static int encrypt_secrets(const char *master, const unsigned char *plain,
-                           size_t plain_length, unsigned char salt[16],
-                           unsigned char iv[12], unsigned char tag[16],
-                           AmgBuffer *cipher, AmgError *error)
+                           size_t plain_length, unsigned long iterations,
+                           unsigned char salt[16], unsigned char iv[12],
+                           unsigned char tag[16], AmgBuffer *cipher,
+                           AmgError *error)
 {
     unsigned char key[32];
     EVP_CIPHER_CTX *ctx = NULL;
@@ -84,7 +99,7 @@ static int encrypt_secrets(const char *master, const unsigned char *plain,
         amg_random_bytes(iv, 12U) != AMG_OK)
         goto done;
     if (PKCS5_PBKDF2_HMAC(master, (int)strlen(master), salt, 16,
-                          STORAGE_ITERATIONS, EVP_sha256(), 32, key) != 1)
+                          (int)iterations, EVP_sha256(), 32, key) != 1)
         goto done;
     ctx = EVP_CIPHER_CTX_new();
     if (!ctx ||
@@ -123,7 +138,8 @@ done:
 }
 
 static int decrypt_secrets(const char *master, const unsigned char *cipher,
-                           size_t cipher_length, const unsigned char salt[16],
+                           size_t cipher_length, unsigned long iterations,
+                           const unsigned char salt[16],
                            const unsigned char iv[12],
                            const unsigned char tag[16], AmgBuffer *plain,
                            AmgError *error)
@@ -139,7 +155,7 @@ static int decrypt_secrets(const char *master, const unsigned char *cipher,
 
     result = AMG_ERR_AUTH;
     if (PKCS5_PBKDF2_HMAC(master, (int)strlen(master), salt, 16,
-                          STORAGE_ITERATIONS, EVP_sha256(), 32, key) != 1)
+                          (int)iterations, EVP_sha256(), 32, key) != 1)
         goto done;
     ctx = EVP_CIPHER_CTX_new();
     if (!ctx ||
@@ -200,8 +216,8 @@ int amg_storage_save_account(const char *path,const AmgAccount *account,const ch
         if(result==AMG_OK){amg_buffer_append_cstr(&plain,"app_password=");if(account->app_password)hex_encode((unsigned char*)account->app_password,strlen(account->app_password),&plain);
             amg_buffer_append_cstr(&plain,"\nrefresh_token=");if(account->refresh_token)hex_encode((unsigned char*)account->refresh_token,strlen(account->refresh_token),&plain);amg_buffer_append_char(&plain,'\n');}
 #if AMIGMAIL_AMIGA
-        if(result==AMG_OK)result=encrypt_secrets(master_password,plain.data,plain.length,salt,iv,tag,&cipher,error);
-        if(result==AMG_OK){fprintf(file,"secrets=aes-256-gcm\niterations=%d\n",STORAGE_ITERATIONS);result=write_hex_line(file,"salt",salt,16U);}
+        if(result==AMG_OK)result=encrypt_secrets(master_password,plain.data,plain.length,STORAGE_WRITE_ITERATIONS,salt,iv,tag,&cipher,error);
+        if(result==AMG_OK){fprintf(file,"secrets=aes-256-gcm\niterations=%lu\n",STORAGE_WRITE_ITERATIONS);result=write_hex_line(file,"salt",salt,16U);}
         if(result==AMG_OK)result=write_hex_line(file,"iv",iv,12U);
         if(result==AMG_OK)result=write_hex_line(file,"tag",tag,16U);
         if(result==AMG_OK)result=write_hex_line(file,"ciphertext",cipher.data,cipher.length);
@@ -267,7 +283,7 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
     amg_error_set(error,AMG_OK,"");
     if (!path || !account) return AMG_ERR_ARGUMENT;
     data=read_all(path,&length);(void)length;
-    if(!data){amg_error_set(error,AMG_ERR_IO,T("Kontodatei wurde nicht gefunden.", "Account file was not found."));return AMG_ERR_IO;}
+    if(!data){amg_error_set(error,AMG_ERR_IO,T("Es wurde noch keine Kontodatei gespeichert. Bitte zuerst Speichern verwenden.", "No account file has been saved yet. Please use Save first."));return AMG_ERR_IO;}
     if(strncmp(data,STORAGE_HEADER,sizeof(STORAGE_HEADER)-1U)){
         free(data);
         amg_error_set(error,AMG_ERR_PARSE,T("Kontodatei ist ung\303\274ltig.", "Account file is invalid."));
@@ -317,14 +333,25 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
         }
     }
     if(field(data,"secrets",value,sizeof(value))&&!strcmp(value,"aes-256-gcm")){
-        AmgBuffer salt,iv,tag,cipher,plain;amg_buffer_init(&salt);amg_buffer_init(&iv);amg_buffer_init(&tag);amg_buffer_init(&cipher);amg_buffer_init(&plain);
-        if(!effective_master||!*effective_master)result=AMG_ERR_AUTH;
-        else if(!field(data,"salt",value,sizeof(value))||hex_decode(value,&salt)!=AMG_OK||!field(data,"iv",value,sizeof(value))||hex_decode(value,&iv)!=AMG_OK||
-                !field(data,"tag",value,sizeof(value))||hex_decode(value,&tag)!=AMG_OK||!field(data,"ciphertext",value,sizeof(value))||hex_decode(value,&cipher)!=AMG_OK||salt.length!=16U||iv.length!=12U||tag.length!=16U)result=AMG_ERR_PARSE;
+        AmgBuffer salt,iv,tag,cipher,plain;
+        unsigned long iterations=STORAGE_LEGACY_ITERATIONS;
+        char *iteration_end=NULL;
+        amg_buffer_init(&salt);amg_buffer_init(&iv);amg_buffer_init(&tag);amg_buffer_init(&cipher);amg_buffer_init(&plain);
+        if(field(data,"iterations",value,sizeof(value))){
+            unsigned long parsed=strtoul(value,&iteration_end,10);
+            if(!value[0]||!iteration_end||*iteration_end||
+               parsed<STORAGE_MIN_ITERATIONS||parsed>STORAGE_MAX_ITERATIONS)
+                result=AMG_ERR_PARSE;
+            else
+                iterations=parsed;
+        }
+        if(result==AMG_OK&&(!effective_master||!*effective_master))result=AMG_ERR_AUTH;
+        else if(result==AMG_OK&&(!field(data,"salt",value,sizeof(value))||hex_decode(value,&salt)!=AMG_OK||!field(data,"iv",value,sizeof(value))||hex_decode(value,&iv)!=AMG_OK||
+                !field(data,"tag",value,sizeof(value))||hex_decode(value,&tag)!=AMG_OK||!field(data,"ciphertext",value,sizeof(value))||hex_decode(value,&cipher)!=AMG_OK||salt.length!=16U||iv.length!=12U||tag.length!=16U))result=AMG_ERR_PARSE;
 #if AMIGMAIL_AMIGA
-        else result=decrypt_secrets(effective_master,cipher.data,cipher.length,salt.data,iv.data,tag.data,&plain,error);
+        else if(result==AMG_OK)result=decrypt_secrets(effective_master,cipher.data,cipher.length,iterations,salt.data,iv.data,tag.data,&plain,error);
 #else
-        else result=AMG_ERR_UNSUPPORTED;
+        else if(result==AMG_OK)result=AMG_ERR_UNSUPPORTED;
 #endif
         if(result==AMG_OK){amg_buffer_terminate(&plain);line=(char*)plain.data;if(field(line,"app_password",value,sizeof(value))){decoded.length=0;if(hex_decode(value,&decoded)==AMG_OK){amg_buffer_terminate(&decoded);amg_account_set_secret(&account->app_password,(char*)decoded.data);}}
             if(field(line,"refresh_token",value,sizeof(value))){decoded.length=0;if(hex_decode(value,&decoded)==AMG_OK){amg_buffer_terminate(&decoded);amg_account_set_secret(&account->refresh_token,(char*)decoded.data);}}}
@@ -334,6 +361,6 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
     amg_secure_clear(decoded.data,decoded.capacity);amg_buffer_free(&decoded);amg_secure_clear(data,strlen(data));free(data);
     if(result==AMG_OK)amg_error_set(error,AMG_OK,"");
     else if(result==AMG_ERR_AUTH)amg_error_set(error,result,T("Master-Passwort fehlt oder ist falsch.", "Master password is missing or incorrect."));
-    else if(!error||error->code==AMG_OK)amg_error_set(error,result,T("Kontodatei ist ungültig.", "Account file is invalid."));
+    else if(!error||error->code==AMG_OK)amg_error_set(error,result,T("Kontodatei ist ung\303\274ltig.", "Account file is invalid."));
     return result;
 }

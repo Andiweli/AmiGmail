@@ -1,5 +1,19 @@
 # AmiGmail Changelog
 
+## 1.9 – 2026-08-20
+
+- Program version updated to 1.9
+- improved first-run account configuration: **Unlock** is disabled until an encrypted account configuration actually exists
+- reduced the PBKDF2 cost for newly saved account files to a more practical value for 68k Amiga systems while retaining compatibility with existing encrypted accounts
+- stored PBKDF2 iteration metadata is now validated and used when loading encrypted account data
+- improved master-password handling and account-storage compatibility without storing the master password itself
+- made the **About** header font-safe: its height now follows the selected Workbench font while the embedded 170×28 AmiGmail banner remains vertically centred
+- extended the grey `#888888` About-header background across the complete banner/text header area
+- improved the startup splash layout for larger Workbench fonts
+- the splash banner background now expands to the full popup content width when the text below is wider than the 170-pixel artwork
+- retained the native Workbench/ReAction font instead of forcing an application-specific font
+- Gmail, IMAP/SMTP, drafts, contacts, notifications, update checking, mailto handling and iconify behaviour remain unchanged
+
 ## 1.8 – 2026-08-18
 
 - Program version updated to 1.8

@@ -51,6 +51,7 @@
 #define GUI_ACCOUNT_LABEL_WIDTH 150
 #define GUI_ABOUT_BANNER_WIDTH 170L
 #define GUI_ABOUT_BANNER_HEIGHT 28L
+#define GUI_ABOUT_TEXT_LEFT_PADDING 10L
 #define T(de, en) amg_tr((de), (en))
 
 enum AccountGadgetId {
@@ -996,7 +997,7 @@ void about_dialog(AmgGui *gui)
 
             LAYOUT_AddChild, HGroupObject,
                 LAYOUT_SpaceOuter, FALSE,
-                LAYOUT_SpaceInner, TRUE,
+                LAYOUT_SpaceInner, FALSE,
                 /* One continuous #888888 header band behind both the logo
                  * and the three transparent ReAction text labels. */
                 LAYOUT_FillPen, gui->banner_pens[0],
@@ -1009,8 +1010,13 @@ void about_dialog(AmgGui *gui)
                 CHILD_MinHeight, header_height,
                 CHILD_MaxHeight, header_height,
                 CHILD_WeightedHeight, 0,
+
                 LAYOUT_AddChild, VGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
+                    LAYOUT_SpaceOuter, TRUE,
+                    LAYOUT_LeftSpacing, GUI_ABOUT_TEXT_LEFT_PADDING,
+                    LAYOUT_RightSpacing, 0,
+                    LAYOUT_TopSpacing, 0,
+                    LAYOUT_BottomSpacing, 0,
                     LAYOUT_SpaceInner, FALSE,
                     LAYOUT_AddChild, static_text_label("AmiGmail " AMIGMAIL_VERSION),
                     CHILD_MinHeight, line_height,

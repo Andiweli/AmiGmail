@@ -159,17 +159,6 @@ static void splash_draw_banner(void)
     left = (LONG)slot->LeftEdge;
     top = (LONG)slot->TopEdge;
 
-    /* The text block below may be wider with another Workbench font.
-     * Fill the complete banner slot first, so the #888888 band always
-     * reaches the popup's content right edge instead of stopping at 170px. */
-    if (slot->Width > 0 && slot->Height > 0) {
-        SetAPen(rastport, (ULONG)splash_pens[0]);
-        RectFill(rastport,
-                 left, top,
-                 left + (LONG)slot->Width - 1L,
-                 top + (LONG)slot->Height - 1L);
-    }
-
     header = splash_chunk("BMHD", &header_length);
     body = splash_chunk("BODY", &body_length);
     if (!header || header_length < 20U || !body) return;
@@ -335,10 +324,9 @@ static Object *splash_create_window_object(void)
         LAYOUT_HorizAlignment, LALIGN_LEFT,
         LAYOUT_BevelStyle, BVS_THIN,
         LAYOUT_AddChild, (ULONG)(uintptr_t)splash_banner_slot,
-        /* Minimum remains the native artwork width. Without a maximum the
-         * slot expands to the width chosen by a wider text/font below. */
         CHILD_MinWidth, SPLASH_BANNER_WIDTH,
-        CHILD_WeightedWidth, 100,
+        CHILD_MaxWidth, SPLASH_BANNER_WIDTH,
+        CHILD_WeightedWidth, 0,
         CHILD_MinHeight, SPLASH_BANNER_HEIGHT,
         CHILD_MaxHeight, SPLASH_BANNER_HEIGHT,
         CHILD_WeightedHeight, 0,

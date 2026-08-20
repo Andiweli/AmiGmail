@@ -1,5 +1,5 @@
 PROJECT := AmiGmail
-VERSION := 1.8
+VERSION := 1.9
 
 ifeq ($(origin CC),default)
 CC := m68k-amigaos-gcc
