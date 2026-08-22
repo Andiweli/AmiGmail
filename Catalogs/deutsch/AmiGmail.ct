@@ -1,0 +1,1258 @@
+## version $VER: AmiGmail.catalog 1.0 (22.08.2026)
+## language deutsch
+## codeset 0
+
+MSG_0_ATTACHMENTS_0_KB_OF_10240_KB
+0 Anlagen, 0 KB von 10240 KB
+
+MSG_ABOUT_AMIGMAIL
+\334ber AmiGmail
+
+MSG_ABOUT_AMIGMAIL_892D
+\334ber AmiGmail...
+
+MSG_ACCOUNT_DIALOG_COULD_NOT_BE_CREATED
+Kontodialog konnte nicht erzeugt werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_ACCOUNT_DIALOG_COULD_NOT_BE_OPENED
+Kontodialog konnte nicht ge\303\266ffnet werden.
+
+MSG_ACCOUNT_FILE_COULD_NOT_BE_SAVED_SECURELY
+Kontodatei konnte nicht sicher gespeichert werden.
+
+MSG_ACCOUNT_FILE_COULD_NOT_BE_WRITTEN
+Kontodatei konnte nicht geschrieben werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_ACCOUNT_FILE_IS_INVALID
+Kontodatei ist ung\303\274ltig.
+
+MSG_ACCOUNT_IS_CONFIGURED_AND_UNLOCKED
+Konto ist eingerichtet und entsperrt.
+
+MSG_ACCOUNT_SETTINGS
+Konto-Einstellungen...
+
+MSG_ACTION_COMPLETED
+Aktion abgeschlossen.
+
+MSG_AMIGAOS_ONLY
+Nur AmigaOS.
+
+MSG_AMIGMAIL_ACCOUNT_SETTINGS
+AmiGmail - Konto-Einstellungen
+
+MSG_AMIGMAIL_CONTACT_MANAGEMENT
+AmiGmail - Kontaktverwaltung
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_AMIGMAIL_CURRENTLY_SUPPORTS_SMTP_OVER_DIRECT_TLS_ON
+AmiGmail unterst\303\274tzt SMTP derzeit \303\274ber direktes TLS auf Port 465.
+
+MSG_AMIGMAIL_EDIT_CONTACT
+AmiGmail - Kontakt bearbeiten
+
+MSG_AMIGMAIL_EDIT_DRAFT
+AmiGmail - Entwurf bearbeiten
+
+MSG_AMIGMAIL_FORWARD
+AmiGmail - Weiterleiten
+
+MSG_AMIGMAIL_IS_AN_INDEPENDENT_NON_COMMERCIAL_HOBBY_PROJECT
+AmiGmail ist ein unabh\344ngiges, nichtkommerzielles Freizeitprojekt.
+
+MSG_AMIGMAIL_IS_NOT_ACTIVE
+AmiGmail nicht aktiv
+
+MSG_AMIGMAIL_NEW_CONTACT
+AmiGmail - Neuer Kontakt
+
+MSG_AMIGMAIL_NEW_MAIL
+AmiGmail - Neue Mail
+
+MSG_AMIGMAIL_REPLY
+AmiGmail - Antworten
+
+MSG_AMIGMAIL_SELECT_CONTACTS
+AmiGmail - Kontakte ausw\344hlen
+
+MSG_AMIGMAIL_SIGNATURE
+AmiGmail - Signatur
+
+MSG_AMIGMAIL_WINDOW_COULD_NOT_BE_RESTORED
+AmiGmail-Fenster konnte nicht wiederhergestellt werden.
+
+MSG_AMISSL_COULD_NOT_BE_INITIALIZED
+AmiSSL konnte nicht initialisiert werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_AMISSL_COULD_NOT_ENCRYPT_THE_ACCOUNT_DATA
+AmiSSL konnte die Kontodaten nicht verschl\303\274sseln.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_AMISSL_IS_ONLY_AVAILABLE_IN_THE_AMIGAOS_BUILD
+AmiSSL ist nur im AmigaOS-Build verf\303\274gbar.
+
+MSG_AMISSL_V5_OR_AMISSLMASTER_LIBRARY_IS_MISSING
+AmiSSL v5 beziehungsweise amisslmaster.library fehlt.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_AN_ATTACHMENT_COULD_NOT_BE_OPENED
+Eine Dateianlage konnte nicht ge\303\266ffnet werden.
+
+MSG_AN_ATTACHMENT_COULD_NOT_BE_READ
+Eine Dateianlage konnte nicht gelesen werden.
+
+MSG_AN_ATTACHMENT_COULD_NOT_BE_SENT
+Eine Dateianlage konnte nicht gesendet werden.
+
+MSG_AN_ATTACHMENT_COULD_NOT_BE_WRITTEN_TO_THE
+Eine Dateianlage konnte nicht in den Entwurf geschrieben werden.
+
+MSG_AN_INPUT_FIELD_IS_TOO_LONG
+Ein Eingabefeld ist zu lang.
+
+MSG_AN_UNKNOWN_DATE
+unbekanntem Datum
+
+MSG_ATTACHMENT
+_Anlage...
+
+MSG_ATTACHMENTS
+Anlagen:
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_ATTACHMENTS_791D
+\n\nAnh\303\244nge:\n
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_ATTACHMENTS_COULD_NOT_BE_PARSED
+Dateianh\303\244nge konnten nicht ausgewertet werden.
+
+MSG_ATTACHMENTS_MAY_TOTAL_NO_MORE_THAN_10_MB_LOCAL
+Anlagen d\374rfen zusammen h\366chstens 10 MB gro\337 sein.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_ATTACHMENTS_MAY_TOTAL_NO_MORE_THAN_10_MB_UTF8
+Dateianlagen d\303\274rfen zusammen h\303\266chstens 10 MB gro\303\237 sein.
+
+MSG_ATTACHMENTS_TOTAL_MORE_THAN_10_MB
+Anlagen sind zusammen gr\366\337er als 10 MB.
+
+MSG_ATTACHMENT_BIN
+Anhang.bin
+
+MSG_ATTACHMENT_COULD_NOT_BE_DECODED
+Dateianhang konnte nicht dekodiert werden.
+
+MSG_ATTACHMENT_COULD_NOT_BE_SAVED
+Anhang konnte nicht gespeichert werden.
+
+MSG_ATTACHMENT_COULD_NOT_BE_WRITTEN_TO_DISK
+Anhang konnte nicht auf Disk geschrieben werden.
+
+MSG_ATTACHMENT_PATH_IS_TOO_LONG
+Dateipfad f\374r Anhang ist zu lang.
+
+MSG_ATTACHMENT_WAS_NOT_FOUND
+Dateianhang wurde nicht gefunden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_AT_LEAST_ONE_RECIPIENT_IS_REQUIRED
+Mindestens ein Empf\303\244nger fehlt.
+
+MSG_A_FIELD_IN_THE_MAILTO_LINK_IS_TOO
+Ein Feld des mailto:-Links ist zu lang.
+
+MSG_A_HEADER_LINE_IS_TOO_LONG
+Eine Kopfzeile ist zu lang.
+
+MSG_A_MAXIMUM_OF_8_ATTACHMENTS_IS_ALLOWED
+H\366chstens 8 Anlagen sind m\366glich.
+
+MSG_BANNER_ROW_COULD_NOT_BE_CREATED
+Grafikzeile konnte nicht angelegt werden.
+
+MSG_BSDSOCKET_LIBRARY_V4_IS_MISSING
+bsdsocket.library V4 fehlt.
+
+MSG_CANCEL
+Ab_brechen
+
+MSG_CA_CERTIFICATES_COULD_NOT_BE_LOADED
+CA-Zertifikate konnten nicht geladen werden
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_CHECK_AMIGMAIL_UPDATE
+AmiGmail-Update pr\303\274fen
+
+MSG_CLOSE
+_Schlie\337en
+
+MSG_COLUMNS_COULD_NOT_BE_CREATED
+Spalten konnten nicht angelegt werden.
+
+MSG_COMPANY
+Firma:
+
+MSG_CONNECTED_TO_GMAIL
+Mit Gmail verbunden.
+
+MSG_CONNECTING_TO_GMAIL
+Verbinde mit Gmail...
+
+MSG_CONTACTS_COULD_NOT_BE_DELETED
+Kontakte konnten nicht gel\366scht werden.
+
+MSG_CONTACTS_COULD_NOT_BE_IMPORTED
+Kontakte konnten nicht importiert werden.
+
+MSG_CONTACT_ALREADY_EXISTS
+Kontakt ist bereits vorhanden.
+
+MSG_CONTACT_COULD_NOT_BE_SAVED
+Kontakt konnte nicht gespeichert werden.
+
+MSG_CONTACT_DELETED
+Kontakt gel\366scht.
+
+MSG_CONTACT_FILE_COULD_NOT_BE_LOADED
+Kontaktdatei konnte nicht geladen werden.
+
+MSG_CONTACT_FILE_COULD_NOT_BE_SAVED
+Kontaktdatei konnte nicht gespeichert werden.
+
+MSG_CONTACT_MANAGEMENT
+Kontaktverwaltung
+
+MSG_CONTACT_SAVED
+Kontakt gespeichert.
+
+MSG_DATE
+Datum: 
+
+MSG_DATE_B264
+Datum
+
+MSG_DECRYPTING_ACCOUNT_DATA
+Kontodaten werden entschl\374sselt...
+
+MSG_DELETE
+_L\366schen
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_DELETE_MESSAGE
+Nachricht l\303\266schen
+
+MSG_DELETING_VALUE_MESSAGE_S
+%lu Nachricht(en) werden gel\366scht.
+
+MSG_DESTINATION_FOLDER
+Zielordner
+
+MSG_DESTINATION_FOLDER_COULD_NOT_BE_SELECTED
+Zielordner konnte nicht ausgew\344hlt werden.
+
+MSG_DOWNLOADING_UPDATE_TO_RAM
+Update wird nach RAM: geladen...
+
+MSG_DOWNLOAD_AMIGMAIL_UPDATE
+AmiGmail-Update herunterladen
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_DOWNLOAD_IS_TOO_LARGE
+Download ist zu gro\303\237.
+
+MSG_DO_NOT_USE_YOUR_NORMAL_GOOGLE_PASSWORD
+Kein normales Google-Passwort verwenden.
+
+MSG_DO_YOU_WANT_TO_SAVE_THE_DRAFT
+Wollen Sie den Entwurf speichern?
+
+MSG_DRAFTS_CAN_ONLY_BE_EDITED_IN_THE_DRAFTS
+Entw\374rfe k\366nnen nur im Ordner Entw\374rfe bearbeitet werden.
+
+MSG_DRAFT_ATTACHMENTS_TOTAL_MORE_THAN_10_MB
+Entwurfsanlagen sind zusammen gr\366\337er als 10 MB.
+
+MSG_DRAFT_BODY_IS_TOO_LARGE_TO_EDIT
+Entwurfstext ist zu gro\337 zum Bearbeiten.
+
+MSG_DRAFT_COULD_NOT_BE_PARSED
+Entwurf konnte nicht ausgewertet werden.
+
+MSG_DRAFT_COULD_NOT_BE_PREPARED_FOR_EDITING
+Entwurf konnte nicht zum Bearbeiten vorbereitet werden.
+
+MSG_DRAFT_WAS_NOT_CHANGED
+Entwurf wurde nicht ge\344ndert.
+
+MSG_DRAFT_WAS_SAVED
+Entwurf wurde gespeichert.
+
+MSG_DRAFT_WAS_SENT
+Entwurf wurde versendet.
+
+MSG_EDIT
+_Bearbeiten
+
+MSG_EDIT_A8FE
+Bearbeiten
+
+MSG_EMAIL_ADDRESS
+E-Mail-Adresse
+
+MSG_EMAIL_ADDRESS_F1D2
+E-Mail-Adresse:
+
+MSG_EMPTYING_SPAM
+Spam wird geleert...
+
+MSG_EMPTYING_TRASH
+Papierkorb wird geleert...
+
+MSG_EMPTY_SPAM
+Spam leeren...
+
+MSG_EMPTY_SPAM_24AD
+Spam leeren
+
+MSG_EMPTY_TRASH
+Papierkorb leeren...
+
+MSG_EMPTY_TRASH_8804
+Papierkorb leeren
+
+MSG_ENCRYPTING_ACCOUNT_DATA
+Kontodaten werden verschl\374sselt...
+
+MSG_ENTER_A_MASTER_PASSWORD_FOR_ENCRYPTION
+Master-Passwort zum Verschl\374sseln eingeben.
+
+MSG_ENTER_THE_MASTER_PASSWORD
+Master-Passwort eingeben.
+
+MSG_ENVARC_AMIGMAIL_COULD_NOT_BE_CREATED
+ENVARC:AmiGmail konnte nicht angelegt werden.
+
+MSG_ERROR
+Fehler
+
+MSG_FETCH
+_Abrufen
+
+MSG_FETCH_DATE_COULD_NOT_BE_CALCULATED
+Abrufdatum konnte nicht berechnet werden.
+
+MSG_FETCH_FOLDER
+Posteingang abrufen
+
+MSG_FETCH_GMAIL_AT_STARTUP
+Gmail-Abruf beim Start
+
+MSG_FETCH_GMAIL_LABELS
+Gmail-Labels abrufen
+
+MSG_FETCH_MESSAGE
+Nachricht abrufen
+
+MSG_FETCH_PERIOD_DAYS
+Abruf-Zeitraum (Tage):
+
+MSG_FETCH_PERIOD_ENTER_1_TO_3650_DAYS
+Abruf-Zeitraum: 1 bis 3650 Tage eingeben.
+
+MSG_FILE
+Datei
+
+MSG_FILE_COULD_NOT_BE_READ
+Datei konnte nicht gelesen werden.
+
+MSG_FILE_PATH_IS_TOO_LONG
+Dateipfad ist zu lang.
+
+MSG_FILE_REQUESTER_COULD_NOT_BE_OPENED
+Dateiauswahl konnte nicht ge\366ffnet werden.
+
+MSG_FIRST_NAME
+Vorname
+
+MSG_FIRST_NAME_E581
+Vorname:
+
+MSG_FOLDER
+Ordner
+
+MSG_FORWARD
+_Weiterleiten
+
+MSG_FORWARDED_MESSAGE
+---------- Weitergeleitete Nachricht ----------\n
+
+MSG_FORWARD_COULD_NOT_BE_PREPARED
+Weiterleitung konnte nicht vorbereitet werden.
+
+MSG_FORWARD_DATA_COULD_NOT_BE_PARSED
+Weiterleitung konnte nicht ausgewertet werden.
+
+MSG_FORWARD_WAS_NOT_SENT
+Weiterleitung wurde nicht gesendet.
+
+MSG_FROM
+Von: 
+
+MSG_GITHUB_DOWNLOAD_ADDRESS_IS_TOO_LONG
+GitHub-Downloadadresse ist zu lang.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_GITHUB_REDIRECT_IS_INVALID
+GitHub-Weiterleitung ist ung\303\274ltig.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_GITHUB_RESPONSE_DOES_NOT_CONTAIN_A_VALID_RELEASE
+GitHub-Antwort enth\303\244lt keine g\303\274ltige Release-Version.
+
+MSG_GITHUB_RETURNED_HTTP_STATUS_VALUE
+GitHub antwortete mit HTTP-Status %d.
+
+MSG_GMAIL_ADDRESS
+Gmail-Adresse:
+
+MSG_GMAIL_APP_PASSWORD
+Gmail-App-Passwort:
+
+MSG_GMAIL_APP_PASSWORD_IS_MISSING
+Gmail-App-Passwort fehlt.
+
+MSG_GMAIL_CLIENT_FOR_AMIGAOS_3_2
+Gmail-Client f\374r AmigaOS 3.2
+
+MSG_GMAIL_CLOSED_THE_TLS_CONNECTION
+Gmail hat die TLS-Verbindung geschlossen.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_GMAIL_DID_NOT_PROVIDE_A_MESSAGE_COUNT_FOR
+Gmail hat keine Nachrichtenanzahl f\303\274r den Ordner geliefert.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_GMAIL_DID_NOT_SEND_A_VALID_IMAP_GREETING
+Gmail sendet keine g\303\274ltige IMAP-Begr\303\274\303\237ung.
+
+MSG_GMAIL_IS_A_TRADEMARK_OF_GOOGLE_LLC
+Gmail ist eine Marke von Google LLC.
+
+MSG_GMAIL_LOGIN_COULD_NOT_BE_PREPARED
+Gmail-Anmeldung konnte nicht vorbereitet werden.
+
+MSG_GMAIL_SENT_NO_IMAP_DATA_AFTER_THE_TLS
+Gmail hat nach dem TLS-Aufbau keine IMAP-Daten gesendet.
+
+MSG_GOOGLE_AUTHORIZATION_HAS_NOT_BEEN_COMPLETED_YET
+Die Google-Autorisierung wurde noch nicht abgeschlossen.
+
+MSG_GOOGLE_REJECTED_THE_OAUTH_REQUEST
+Google hat die OAuth-Anfrage abgelehnt.
+
+MSG_HOST_BUILD_WITHOUT_AMISSL_NETWORKING
+Host-Build ohne AmiSSL-Netzwerk.
+
+MSG_HOST_BUILD_WITHOUT_TLS
+Host-Build ohne TLS.
+
+MSG_HTTPS_DATA_COULD_NOT_BE_PARSED
+HTTPS-Daten konnten nicht ausgewertet werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_HTTPS_HEADER_IS_INCOMPLETE
+HTTPS-Header ist unvollst\303\244ndig.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_HTTPS_RESPONSE_IS_TOO_LARGE
+HTTPS-Antwort ist zu gro\303\237.
+
+MSG_IMAP_APPEND_COMMAND_COULD_NOT_BE_CREATED
+IMAP-APPEND-Befehl konnte nicht erstellt werden.
+
+MSG_IMAP_APPEND_RESPONSE_IS_TOO_LONG
+IMAP-APPEND-Antwort ist zu lang.
+
+MSG_IMAP_CONNECTION
+IMAP-Verbindung
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_IMAP_CONNECTION_FOR_THE_DRAFT_IS_UNAVAILABLE
+IMAP-Verbindung f\303\274r den Entwurf fehlt.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_IMAP_GREETING_IS_TOO_LONG
+IMAP-Begr\303\274\303\237ung ist zu lang.
+
+MSG_IMAP_LIMIT_BUFFER_VALUE_BYTES_ALLOWED_VALUE_BYTES
+IMAP-Limit: Puffer %lu Bytes, erlaubt %lu Bytes.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_IMAP_LIMIT_INVALID_LITERAL_SIZE
+IMAP-Limit: ung\303\274ltige Datenblock-Gr\303\266\303\237e.
+
+MSG_IMAP_LIMIT_LINE_VALUE_BYTES_ALLOWED_VALUE_BYTES
+IMAP-Limit: Zeile %lu Bytes, erlaubt %lu Bytes.
+
+MSG_IMAP_LIMIT_LITERAL_VALUE_BYTES_ALLOWED_VALUE_BYTES
+IMAP-Limit: Datenblock %lu Bytes, erlaubt %lu Bytes.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_IMAP_LIMIT_WAS_EXCEEDED
+IMAP-Limit wurde \303\274berschritten.
+
+MSG_IMAP_MESSAGES_COULD_NOT_BE_PARSED_CODE_VALUE
+IMAP-Nachrichten konnten nicht ausgewertet werden (Code %d).
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_IMAP_RESPONSE_HAS_AN_INVALID_FORMAT
+IMAP-Antwort hat ein ung\303\274ltiges Format.
+
+MSG_IMAP_SERVER_REPORTS_VALUE
+IMAP-Server meldet: %s
+
+MSG_IMAP_SERVER_VALUE
+IMAP-Server: %s
+
+MSG_IMPORT
+_Importieren
+
+MSG_IMPORTED_CONTACTS_COULD_NOT_BE_SAVED
+Import konnte nicht gespeichert werden.
+
+MSG_IMPORT_CONTACTS
+Kontakte importieren
+
+MSG_INBOX
+Posteingang
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_INVALID_HTTPS_ADDRESS
+Ung\303\274ltige HTTPS-Adresse.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_INVALID_HTTPS_RESPONSE
+Ung\303\274ltige HTTPS-Antwort.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_INVALID_MAIL_ADDRESS_OR_HEADER_LINE
+Ung\303\274ltige Mailadresse oder Kopfzeile.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_INVALID_OAUTH_TOKEN_RESPONSE
+Ung\303\274ltige OAuth-Tokenantwort.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_INVALID_SMTP_RESPONSE
+Ung\303\274ltige SMTP-Antwort.
+
+MSG_IT_IS_NOT_AFFILIATED_WITH_GOOGLE_LLC_AND
+Es steht in keiner Verbindung zu Google LLC und wird von Google
+
+MSG_LABEL_SYMBOLS_COULD_NOT_BE_CREATED
+Label-Symbole konnten nicht angelegt werden.
+
+MSG_LAST_NAME
+Nachname
+
+MSG_LAST_NAME_67EF
+Nachname:
+
+MSG_LEGAL_NOTICE
+Rechtlicher Hinweis:
+
+MSG_LOADING_DRAFT_FOR_EDITING
+Entwurf wird zum Bearbeiten geladen...
+
+MSG_LOADING_FOLDER
+Ordner wird geladen...
+
+MSG_LOADING_MESSAGE
+Nachricht wird geladen...
+
+MSG_LOADING_VALUE
+%s wird geladen...
+
+MSG_MAILTO_LINK_CANCELLED_GMAIL_ACCOUNT_IS_LOCKED
+mailto:-Link abgebrochen: Gmail-Konto ist gesperrt.
+
+MSG_MAILTO_LINK_REQUIRES_AN_UNLOCKED_GMAIL_ACCOUNT
+mailto:-Link wartet auf ein entsperrtes Gmail-Konto.
+
+MSG_MAILTO_TEXT_COULD_NOT_BE_DECODED
+mailto:-Text konnte nicht gelesen werden.
+
+MSG_MAIL_DRAFT_COULD_NOT_BE_CREATED
+Mailentwurf konnte nicht erstellt werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_MAIL_DRAFT_IS_TOO_LARGE
+Mailentwurf ist zu gro\303\237.
+
+MSG_MAIL_SENT
+Mail wurde versendet.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_MAIL_TEXT_IS_TOO_LARGE
+Mailtext ist zu gro\303\237.
+
+MSG_MASTER_PASSWORD
+Master-Passwort:
+
+MSG_MASTER_PASSWORD_IS_MISSING_OR_INCORRECT
+Master-Passwort fehlt oder ist falsch.
+
+MSG_MESSAGE
+Nachricht:
+
+MSG_MESSAGES_IN_THE_FETCH_PERIOD_COULD_NOT_BE
+Nachrichten im Abruf-Zeitraum konnten nicht ermittelt werden.
+
+MSG_MESSAGE_COULD_NOT_BE_DISPLAYED
+Nachricht konnte nicht dargestellt werden.
+
+MSG_MESSAGE_DATE_COULD_NOT_BE_GENERATED
+Datum der Nachricht konnte nicht erzeugt werden.
+
+MSG_MESSAGE_LIST_COULD_NOT_BE_LOADED
+Nachrichtenliste konnte nicht geladen werden.
+
+MSG_MESSAGE_LOADED
+Nachricht geladen.
+
+MSG_MESSAGE_MARKED_AS_READ
+Nachricht als gelesen markiert.
+
+MSG_MESSAGE_MARKED_AS_UNREAD
+Nachricht als ungelesen markiert.
+
+MSG_MESSAGE_MOVED_TO_TRASH
+Nachricht wurde in den Papierkorb verschoben.
+
+MSG_MESSAGE_MOVED_TO_VALUE
+Nachricht wurde nach %s verschoben.
+
+MSG_MESSAGE_PORTS_COULD_NOT_BE_CREATED
+Message Ports konnten nicht erstellt werden.
+
+MSG_MESSAGE_TEXT_COULD_NOT_BE_DISPLAYED
+Nachrichtentext konnte nicht dargestellt werden.
+
+MSG_MESSAGE_TEXT_COULD_NOT_BE_READ
+Nachrichtentext konnte nicht gelesen werden.
+
+MSG_MOBILE_PHONE
+Mobiltelefon:
+
+MSG_MOVE
+_Verschieben
+
+MSG_MOVE_CANCELLED
+Verschieben abgebrochen.
+
+MSG_MOVE_MESSAGE
+Nachricht verschieben
+
+MSG_MOVING_MESSAGE_TO_VALUE
+Nachricht wird nach %s verschoben...
+
+MSG_MULTIPLE_SELECTION_IS_SUPPORTED
+Mehrfachauswahl ist m\366glich.
+
+MSG_NAME
+Name:
+
+MSG_NETWORK_ACCESS
+Netzwerkzugriff
+
+MSG_NETWORK_ERROR
+Netzwerkfehler
+
+MSG_NETWORK_PROCESS_COULD_NOT_BE_STARTED
+Netzwerkprozess konnte nicht gestartet werden.
+
+MSG_NETWORK_TASK_IS_AVAILABLE_ONLY_ON_AMIGAOS
+Netzwerk-Task nur unter AmigaOS.
+
+MSG_NEW_CONTACT
+_Neuer Kontakt
+
+MSG_NEW_MAIL
+_Neue Mail
+
+MSG_NEW_MAIL_S_IN_INBOX
+Neue Mail(s) im Posteingang
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_NEW_MAIL_WINDOW_COULD_NOT_BE_CREATED
+Fenster f\303\274r neue Mail konnte nicht erzeugt werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_NEW_MAIL_WINDOW_COULD_NOT_BE_OPENED
+Fenster f\303\274r neue Mail konnte nicht ge\303\266ffnet werden.
+
+MSG_NEW_MESSAGES_COULD_NOT_BE_DETERMINED
+Neue Nachrichten konnten nicht ermittelt werden.
+
+MSG_NEW_UPDATE
+Neues Update
+
+MSG_NO
+_Nein
+
+MSG_NOTIFICATION_SOUND
+Benachrichtigungston
+
+MSG_NOT_CONNECTED_YET_FETCH_STARTS_THE_GMAIL_CONNECTION
+Noch nicht verbunden - 'Abrufen' startet die Gmail-Verbindung.
+
+MSG_NOT_ENOUGH_MEMORY
+Nicht genug Speicher.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_NOT_ENOUGH_MEMORY_FOR_MAILTO_LINK
+Nicht genug Speicher f\303\274r mailto:-Link.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_NOT_ENOUGH_MEMORY_FOR_THE_IMAP_RESPONSE
+Nicht genug Speicher f\303\274r die IMAP-Antwort.
+
+MSG_NO_ACCOUNT_FILE_HAS_BEEN_SAVED_YET_PLEASE
+Es wurde noch keine Kontodatei gespeichert. Bitte zuerst Speichern verwenden.
+
+MSG_NO_ACCOUNT_HAS_BEEN_SAVED_YET_PLEASE_USE
+Noch kein Konto gespeichert. Bitte Speichern verwenden.
+
+MSG_NO_AMISSL_ERROR_TEXT_SOCKET_ERRNO_VALUE
+kein AmiSSL-Fehlertext (Socket-errno %d)
+
+MSG_NO_CONTACTS_AVAILABLE
+Keine Kontakte vorhanden.
+
+MSG_NO_CONTACTS_WITH_AN_EMAIL_ADDRESS
+Keine Kontakte mit E-Mail-Adresse.
+
+MSG_NO_DESTINATION_FOLDER_SELECTED
+Kein Zielordner ausgew\344hlt.
+
+MSG_NO_DISPLAYABLE_TEXT_PART_WAS_FOUND_IN_THE
+Kein darstellbarer Textteil in der Nachricht gefunden.
+
+MSG_NO_NEW_MAIL
+Keine neue(n) Mail(s)
+
+MSG_NO_SUBJECT
+(Kein Betreff)
+
+MSG_OAUTH_ACCESS_TOKEN_IS_MISSING
+OAuth-Zugriffstoken fehlt.
+
+MSG_OAUTH_CLIENT_ID_IS_NOT_CONFIGURED_IN_THIS
+OAuth-Client-ID ist im Build nicht eingerichtet.
+
+MSG_ON_VALUE_VALUE_WROTE
+\n\nAm %s schrieb %s:\n
+
+MSG_OPENSSL_INITIALIZATION_FAILED
+OpenSSL-Initialisierung fehlgeschlagen.
+
+MSG_PERIODIC_FETCH_5_MIN
+Periodischer Abruf (5 Min.)
+
+MSG_PERIODIC_FETCH_CONNECTING_TO_GMAIL
+Periodischer Abruf: Verbinde mit Gmail...
+
+MSG_PERIODIC_FETCH_COULD_NOT_BE_PARSED_CODE_VALUE
+Periodischer Abruf konnte nicht ausgewertet werden (Code %d).
+
+MSG_PERIODIC_FETCH_IS_UNAVAILABLE_TIMER_DEVICE
+Periodischer Abruf ist nicht verf\374gbar (timer.device).
+
+MSG_PERIODIC_FETCH_NO_NEW_MAIL
+Periodischer Abruf: keine neuen Mails.
+
+MSG_PERIODIC_FETCH_VALUE_NEW_MAIL_S_IN_INBOX
+Periodischer Abruf: %lu neue Mail(s) im Posteingang.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_PERIODIC_INBOX_CHECK
+Posteingang periodisch pr\303\274fen
+
+MSG_PHONE
+Telefon:
+
+MSG_PKCE_DATA_COULD_NOT_BE_GENERATED
+PKCE-Daten konnten nicht erzeugt werden.
+
+MSG_PLAYING_SOUND_PREVIEW
+Ton wird probeweise abgespielt...
+
+MSG_PLEASE_CLICK_FETCH_FIRST
+Bitte zuerst 'Abrufen' anklicken.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_PLEASE_ENTER_A_VALID_GMAIL_ADDRESS
+Bitte eine g\303\274ltige Gmail-Adresse eingeben.
+
+MSG_PLEASE_FILL_AT_LEAST_ONE_FIELD
+Bitte mindestens ein Feld ausf\374llen.
+
+MSG_PLEASE_SELECT_AN_ATTACHMENT_FIRST
+Bitte zuerst eine Anlage ausw\344hlen.
+
+MSG_PLEASE_SELECT_AN_IFF_8SVX_WAV_SOUND_FILE
+Bitte eine IFF/8SVX/WAV-Tondatei ausw\344hlen.
+
+MSG_PLEASE_SELECT_AT_LEAST_ONE_CONTACT
+Bitte mindestens einen Kontakt ausw\344hlen.
+
+MSG_PLEASE_SELECT_A_CONTACT_FIRST
+Bitte zuerst einen Kontakt ausw\344hlen.
+
+MSG_PLEASE_SELECT_A_DESTINATION_FOLDER_ON_THE_LEFT
+Bitte seitlich einen Zielordner zum Verschieben ausw\344hlen.
+
+MSG_PLEASE_SELECT_A_MESSAGE_FIRST
+Bitte zuerst eine Nachricht ausw\344hlen.
+
+MSG_PLEASE_SELECT_ONLY_ONE_DRAFT_TO_EDIT
+Bitte zum Bearbeiten nur einen Entwurf ausw\344hlen.
+
+MSG_PLEASE_SELECT_ONLY_ONE_MESSAGE_TO_FORWARD
+Bitte zum Weiterleiten nur eine Nachricht ausw\344hlen.
+
+MSG_PLEASE_SELECT_ONLY_ONE_MESSAGE_TO_REPLY
+Bitte zum Antworten nur eine Nachricht ausw\344hlen.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_POSITION_OF_THE_NEXT_MESSAGE_PAGE_IS_MISSING
+Position der n\303\244chsten Nachrichtenseite fehlt.
+
+MSG_PREPARING_FORWARD
+Weiterleitung wird vorbereitet...
+
+MSG_PREPARING_REPLY
+Antwort wird vorbereitet...
+
+MSG_PREPARING_REPLY_TO_ALL
+Antwort an alle wird vorbereitet...
+
+MSG_QUIT
+Beenden
+
+MSG_REACTION_IMAP_SMTP_AND_AMISSL
+ReAction, IMAP, SMTP und AmiSSL
+
+MSG_READY
+Bereit
+
+MSG_READ_UNREAD
+_Un/Gelesen
+
+MSG_REALLY_DELETE_CONTACT
+Kontakt wirklich l\366schen?
+
+MSG_REALLY_DELETE_MAIL
+Mail wirklich l\366schen?
+
+MSG_REALLY_DELETE_VALUE_SELECTED_CONTACTS
+%lu ausgew\344hlte Kontakte wirklich l\366schen?
+
+MSG_REALLY_EMPTY_SPAM
+Spam wirklich leeren?
+
+MSG_REALLY_EMPTY_TRASH
+Papierkorb wirklich leeren?
+
+MSG_RECIPIENT
+Empf\344nger
+
+MSG_RECIPIENT_LIST_IS_TOO_LONG
+Empf\344ngerliste ist zu lang.
+
+MSG_RECONFIGURE_GMAIL_CONNECTION
+Gmail-Verbindung neu konfigurieren
+
+MSG_RECONNECTING_TO_GMAIL
+Verbinde erneut mit Gmail...
+
+MSG_REMOVE
+Ent_fernen
+
+MSG_REMOVING_STAR
+Sternmarkierung wird entfernt...
+
+MSG_REPLY
+A_ntworten
+
+MSG_REPLY_ALL
+Allen _Antworten
+
+MSG_REPLY_COULD_NOT_BE_PREPARED
+Antwort konnte nicht vorbereitet werden.
+
+MSG_REPLY_DATA_COULD_NOT_BE_PARSED
+Antwortdaten konnten nicht ausgewertet werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_REPLY_DRAFT_IS_TOO_LARGE
+Antwortentwurf ist zu gro\303\237.
+
+MSG_REPLY_MESSAGE_COULD_NOT_BE_CREATED
+Antwortnachricht konnte nicht erstellt werden.
+
+MSG_REPLY_SENT
+Antwort wurde versendet.
+
+MSG_REPLY_TO_ALL_COULD_NOT_BE_PREPARED
+Antwort an alle konnte nicht vorbereitet werden.
+
+MSG_REPLY_TO_ALL_DATA_COULD_NOT_BE_PARSED
+Antwort an alle konnte nicht ausgewertet werden.
+
+MSG_REPLY_TO_ALL_WAS_NOT_SENT
+Antwort an alle wurde nicht gesendet.
+
+MSG_REPLY_WAS_NOT_SENT
+Antwort wurde nicht gesendet.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_REQUIRED_REACTION_CLASSES_ARE_MISSING_AMIGMAIL_REQUIRES_AMIGAOS
+Erforderliche ReAction-Klassen fehlen. AmiGmail ben\303\266tigt AmigaOS 3.2.
+
+MSG_SAVE
+_Speichern
+
+MSG_SAVE_ATTACHMENTS
+Anh\344nge speichern
+
+MSG_SAVE_ATTACHMENTS_08AF
+_Anh\344nge speichern...
+
+MSG_SAVE_DRAFT
+Entwurf speichern
+
+MSG_SAVING_DRAFT
+Entwurf wird gespeichert...
+
+MSG_SCROLLBAR_COULD_NOT_BE_CREATED
+Scrollbar konnte nicht angelegt werden.
+
+MSG_SECURE_RANDOM_VALUES_COULD_NOT_BE_GENERATED
+Sichere Zufallswerte konnten nicht erzeugt werden.
+
+MSG_SELECT_ATTACHMENT
+Dateianlage ausw\344hlen
+
+MSG_SELECT_A_MESSAGE_AFTER_FETCHING
+W\344hlen Sie nach dem Abruf eine Nachricht aus.
+
+MSG_SELECT_A_MESSAGE_TO_DISPLAY
+W\344hlen Sie eine Nachricht zur Anzeige aus.
+
+MSG_SELECT_NOTIFICATION_SOUND
+Benachrichtigungston ausw\344hlen
+
+MSG_SEND
+_Senden
+
+MSG_SENDER
+Absender
+
+MSG_SENDER_F4D4
+Absender
+
+MSG_SENDING_DRAFT
+Entwurf wird gesendet...
+
+MSG_SENDING_MAIL
+Mail wird gesendet...
+
+MSG_SEND_DRAFT
+Entwurf senden
+
+MSG_SEND_MAIL
+Mail senden
+
+MSG_SEND_REPLY
+Antwort senden
+
+MSG_SERVER_NAME_OR_PORT_IS_MISSING
+Servername oder Port fehlt.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_SERVER_NAME_VALUE_COULD_NOT_BE_RESOLVED
+Servername %.190s konnte nicht aufgel\303\266st werden.
+
+MSG_SETTING_STAR
+Sternmarkierung wird gesetzt...
+
+MSG_SET_READ_STATUS
+Lesestatus setzen
+
+MSG_SET_STAR
+Sternmarkierung setzen
+
+MSG_SIGNATURE
+Signatur
+
+MSG_SIGNATURE_COULD_NOT_BE_READ
+Signatur konnte nicht gelesen werden.
+
+MSG_SIGNATURE_COULD_NOT_BE_SAVED
+Signatur konnte nicht gespeichert werden.
+
+MSG_SIGNATURE_EDITOR_COULD_NOT_BE_OPENED
+Signatur-Editor konnte nicht ge\366ffnet werden.
+
+MSG_SIGNATURE_IS_TOO_LONG
+Signatur ist zu lang.
+
+MSG_SIGNATURE_WAS_SAVED
+Signatur wurde gespeichert.
+
+MSG_SIZE
+Gr\366\337e
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_SOCKET_COULD_NOT_BE_OPENED_ERRNO_VALUE
+Socket konnte nicht ge\303\266ffnet werden (errno %d).
+
+MSG_SOCKET_WAIT_ERROR_WHILE_ACCESSING_GMAIL
+Socket-Wartefehler beim Gmail-Zugriff.
+
+MSG_SOUND_FILE
+Tondatei:
+
+MSG_SOUND_FILE_COULD_NOT_BE_LOADED_PLAYED
+Tondatei konnte nicht geladen/abgespielt werden.
+
+MSG_SOURCE_AND_DESTINATION_FOLDERS_ARE_IDENTICAL
+Quell- und Zielordner sind identisch.
+
+MSG_SPAM_WAS_EMPTIED
+Spam wurde geleert.
+
+MSG_STAR_WAS_REMOVED
+Sternmarkierung wurde entfernt.
+
+MSG_STAR_WAS_SET
+Sternmarkierung wurde gesetzt.
+
+MSG_SUBJECT
+Betreff: 
+
+MSG_SUBJECT_5C24
+Betreff
+
+MSG_SUBJECT_DF0D
+Betreff:
+
+MSG_SUPPORTED_OR_SPONSORED_BY_GOOGLE
+weder entwickelt, unterst\374tzt noch gesponsert.
+
+MSG_TCP_CONNECTION_TO_VALUE_VALUE_FAILED_ERRNO_VALUE
+TCP-Verbindung zu %.175s:%u fehlgeschlagen (errno %d).
+
+MSG_TEMPORARY_ATTACHMENT_COULD_NOT_BE_CREATED
+Tempor\344re Anlage konnte nicht angelegt werden.
+
+MSG_TEMPORARY_ATTACHMENT_COULD_NOT_BE_WRITTEN
+Tempor\344re Anlage konnte nicht geschrieben werden.
+
+MSG_THE_CURRENT_GMAIL_FOLDER_IS_UNKNOWN
+Der aktuelle Gmail-Ordner ist nicht bekannt.
+
+MSG_THE_DRAFT_CONTAINS_MORE_THAN_8_ATTACHMENTS
+Der Entwurf enth\344lt mehr als 8 Anlagen.
+
+MSG_THE_DRAFT_TO_REPLACE_IS_UNKNOWN
+Der zu ersetzende Entwurf ist nicht bekannt.
+
+MSG_THE_DRAFT_TO_SEND_IS_UNKNOWN
+Der zu sendende Entwurf ist nicht bekannt.
+
+MSG_THE_FETCH_PERIOD_MUST_BE_BETWEEN_1_AND
+Der Abruf-Zeitraum muss zwischen 1 und 3650 Tagen liegen.
+
+MSG_THE_FOLDER_COULD_NOT_BE_PARSED
+Der Ordner konnte nicht ausgewertet werden.
+
+MSG_THE_GMAIL_APP_PASSWORD_IS_MISSING
+Das Gmail-App-Passwort fehlt.
+
+MSG_THE_GMAIL_APP_PASSWORD_MUST_CONTAIN_16_CHARACTERS
+Das Gmail-App-Passwort muss 16 Zeichen enthalten.
+
+MSG_THE_GMAIL_DRAFTS_FOLDER_IS_UNKNOWN
+Der Gmail-Entwurfsordner ist nicht bekannt.
+
+MSG_THE_GMAIL_DRAFTS_FOLDER_WAS_NOT_FOUND
+Der Gmail-Entwurfsordner wurde nicht gefunden.
+
+MSG_THE_GMAIL_SPAM_FOLDER_IS_UNKNOWN
+Der Gmail-Spamordner ist nicht bekannt.
+
+MSG_THE_GMAIL_TRASH_FOLDER_IS_UNKNOWN
+Der Gmail-Papierkorb ist nicht bekannt.
+
+MSG_THE_IMAP_SERVER_REJECTED_THE_COMMAND
+Der IMAP-Server hat den Befehl abgelehnt.
+
+MSG_THE_MESSAGE_CONTAINS_MORE_THAN_8_ATTACHMENTS
+Die Nachricht enth\344lt mehr als 8 Anlagen.
+
+MSG_THE_MESSAGE_IS_ALREADY_IN_TRASH
+Die Nachricht liegt bereits im Papierkorb.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_THE_SELECTED_MESSAGE_CONTAINS_NO_MAIL_DATA_BLOCK
+Die ausgew\303\244hlte Nachricht enth\303\244lt keinen Mail-Datenblock.
+
+MSG_THE_SELECTED_SOUND_FILE_WAS_NOT_FOUND
+Die gew\344hlte Tondatei wurde nicht gefunden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_THE_SERVER_CERTIFICATE_IS_INVALID_PLEASE_ALSO_CHECK
+Das Serverzertifikat ist ung\303\274ltig. Bitte auch Datum und Uhrzeit pr\303\274fen.
+
+MSG_THE_SOURCE_FOLDER_IS_UNKNOWN
+Der Quellordner ist nicht bekannt.
+
+MSG_THIS_ACTION_CANNOT_BE_UNDONE
+Dieser Vorgang kann nicht widerrufen werden.
+
+MSG_THIS_FILE_IS_ALREADY_ATTACHED
+Diese Datei ist bereits angeh\344ngt.
+
+MSG_THIS_FOLDER_CONTAINS_NO_MESSAGES
+Dieser Ordner enth\344lt keine Nachrichten.
+
+MSG_THIS_GMAIL_FOLDER_IS_NOT_AVAILABLE_FOR_THE
+Dieser Gmail-Ordner ist f\374r das Konto nicht verf\374gbar.
+
+MSG_THIS_MESSAGE_HAS_NO_SAVABLE_ATTACHMENTS
+Diese Nachricht enth\344lt keine speicherbaren Anh\344nge.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_TIMED_OUT_WAITING_FOR_GMAIL_DATA
+Zeit\303\274berschreitung beim Warten auf Gmail-Daten.
+
+MSG_TLS_CONTEXT
+TLS-Kontext
+
+MSG_TLS_READ_ERROR
+TLS-Lesefehler
+
+MSG_TLS_SESSION
+TLS-Sitzung
+
+MSG_TLS_WRITE_ERROR
+TLS-Schreibfehler
+
+MSG_TO
+An: 
+
+MSG_TOO_MANY_ATTACHMENTS
+Zu viele Dateianlagen.
+
+MSG_TOO_MANY_GITHUB_REDIRECTS
+Zu viele GitHub-Weiterleitungen.
+
+MSG_TO_6B77
+An:
+
+MSG_TRASH_WAS_EMPTIED
+Papierkorb wurde geleert.
+
+MSG_UNKNOWN_NETWORK_REQUEST
+Unbekannter Netzwerkauftrag.
+
+MSG_UNKNOWN_RECIPIENT
+(Unbekannter Empf\344nger)
+
+MSG_UNKNOWN_SENDER
+Unbekannter Absender
+
+MSG_UNKNOWN_SENDER_CCD6
+(Unbekannter Absender)
+
+MSG_UNLOCK
+_Entsperren
+
+MSG_UPDATE_COULD_NOT_BE_WRITTEN_TO_RAM
+Update konnte nicht nach RAM: geschrieben werden.
+
+MSG_UPDATE_DOWNLOADED_TO_VALUE_PLEASE_EXTRACT_IT_MANUALLY
+Update wurde nach %s geladen. Bitte manuell entpacken.
+
+MSG_UPDATE_FILENAME_IS_TOO_LONG
+Update-Dateiname ist zu lang.
+
+MSG_UP_TO_DATE
+Aktuelle Version
+
+MSG_USE_SELECTED
+_\334bernehmen
+
+MSG_VALUE_ATTACHMENT_S_SAVED
+%lu Anhang/Anh\344nge gespeichert.
+
+MSG_VALUE_ATTACHMENT_S_VALUE_KB_OF_10240_KB
+%lu Anlage(n), %lu KB von 10240 KB
+
+MSG_VALUE_CONTACTS_DELETED
+%lu Kontakte gel\366scht.
+
+MSG_VALUE_FAILED_CODE_VALUE
+%s fehlgeschlagen (Code %d).
+
+MSG_VALUE_GMAIL_LABELS_LOADED
+%lu Gmail-Labels wurden geladen.
+
+MSG_VALUE_IMPORTED_VALUE_DUPLICATES_VALUE_SKIPPED
+%lu importiert, %lu Dubletten, %lu \374bersprungen.
+
+MSG_VALUE_MESSAGES_LOADED_IN_VALUE
+%lu Nachrichten in %s geladen.
+
+MSG_VALUE_MESSAGE_S_CHANGING_READ_STATUS
+%lu Nachricht(en): Lesestatus wird ge\344ndert.
+
+MSG_WEBSITE
+Website:
+
+MSG_WORKBENCH_APPPORT_COULD_NOT_BE_CREATED
+Workbench-AppPort konnte nicht angelegt werden.
+
+MSG_WORKBENCH_SCREEN_COULD_NOT_BE_LOCKED
+Workbench-Bildschirm konnte nicht gesperrt werden.
+
+; Internal UTF-8 path: byte escapes intentionally preserved.
+MSG_WORKBENCH_WINDOW_COULD_NOT_BE_OPENED
+Workbench-Fenster konnte nicht ge\303\266ffnet werden.
+
+MSG_YES
+_Ja
+
+MSG_SYSTEM_STARRED
+Markiert
+
+MSG_SYSTEM_SENT
+Gesendet
+
+MSG_SYSTEM_DRAFTS
+Entw\374rfe
+
+MSG_SYSTEM_ALL_MAIL
+Alle Nachrichten
+
+MSG_SYSTEM_SPAM
+Spam
+
+MSG_SYSTEM_TRASH
+Papierkorb

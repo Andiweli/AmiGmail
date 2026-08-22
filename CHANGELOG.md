@@ -1,5 +1,12 @@
 # AmiGmail Changelog
 
+## 1.10 – 2026-08-22
+
+- Program version updated to 1.10
+- Release package version updated to 1.10
+- Binary `$VER:` date updated to 22.08.2026
+- No functional changes relative to the preceding 1.9 code base
+
 ## 1.9 – 2026-08-20
 
 - Program version updated to 1.9

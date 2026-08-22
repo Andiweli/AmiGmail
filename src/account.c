@@ -1,7 +1,7 @@
 #include "account.h"
 #include "i18n.h"
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -69,32 +69,32 @@ int amg_account_validate(const AmgAccount *account, AmgError *error)
     size_t digits = 0;
     const char *p;
     if (!account || !valid_email(account->email)) {
-        amg_error_set(error, AMG_ERR_ARGUMENT, T("Bitte eine gültige Gmail-Adresse eingeben.", "Please enter a valid Gmail address."));
+        amg_error_set(error, AMG_ERR_ARGUMENT, T(MSG_PLEASE_ENTER_A_VALID_GMAIL_ADDRESS, "Please enter a valid Gmail address."));
         return AMG_ERR_ARGUMENT;
     }
     if (!account->imap_host[0] || !account->smtp_host[0] || !account->imap_port || !account->smtp_port) {
-        amg_error_set(error, AMG_ERR_ARGUMENT, T("Servername oder Port fehlt.", "Server name or port is missing."));
+        amg_error_set(error, AMG_ERR_ARGUMENT, T(MSG_SERVER_NAME_OR_PORT_IS_MISSING, "Server name or port is missing."));
         return AMG_ERR_ARGUMENT;
     }
     if (account->fetch_days < 1U || account->fetch_days > 3650U) {
         amg_error_set(error, AMG_ERR_ARGUMENT,
-                      T("Der Abruf-Zeitraum muss zwischen 1 und 3650 Tagen liegen.", "The fetch period must be between 1 and 3650 days."));
+                      T(MSG_THE_FETCH_PERIOD_MUST_BE_BETWEEN_1_AND, "The fetch period must be between 1 and 3650 days."));
         return AMG_ERR_ARGUMENT;
     }
     if (account->auth_mode == AMG_AUTH_APP_PASSWORD) {
         if (!account->app_password) {
-            amg_error_set(error, AMG_ERR_AUTH, T("Das Gmail-App-Passwort fehlt.", "The Gmail app password is missing."));
+            amg_error_set(error, AMG_ERR_AUTH, T(MSG_THE_GMAIL_APP_PASSWORD_IS_MISSING, "The Gmail app password is missing."));
             return AMG_ERR_AUTH;
         }
         for (p = account->app_password; *p; ++p) {
             if (!isspace((unsigned char)*p)) ++digits;
         }
         if (digits != 16U) {
-            amg_error_set(error, AMG_ERR_AUTH, T("Das Gmail-App-Passwort muss 16 Zeichen enthalten.", "The Gmail app password must contain 16 characters."));
+            amg_error_set(error, AMG_ERR_AUTH, T(MSG_THE_GMAIL_APP_PASSWORD_MUST_CONTAIN_16_CHARACTERS, "The Gmail app password must contain 16 characters."));
             return AMG_ERR_AUTH;
         }
     } else if (!account->refresh_token) {
-        amg_error_set(error, AMG_ERR_AUTH, T("Die Google-Autorisierung wurde noch nicht abgeschlossen.", "Google authorization has not been completed yet."));
+        amg_error_set(error, AMG_ERR_AUTH, T(MSG_GOOGLE_AUTHORIZATION_HAS_NOT_BEEN_COMPLETED_YET, "Google authorization has not been completed yet."));
         return AMG_ERR_AUTH;
     }
     amg_error_set(error, AMG_OK, "");

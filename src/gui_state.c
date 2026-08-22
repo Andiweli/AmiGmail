@@ -19,7 +19,7 @@
 #define INBOX_NOTIFY_STATE_HEADER "AMIGMAIL-INBOX-NOTIFY-1"
 #define MAIL_STATUS_VAR "AmiGmailStatus"
 #define MAIL_STATUS_ENVARC_PATH "ENVARC:" MAIL_STATUS_VAR
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 static int mail_status_inactive_exists = 0;
 static int mail_status_shutdown_saved = 0;
@@ -225,8 +225,7 @@ static void set_mail_status_value(const char *value)
 
 static void save_mail_status_inactive(void)
 {
-    const char *value = T("AmiGmail nicht aktiv",
-                          "AmiGmail is not active");
+    const char *value = T(MSG_AMIGMAIL_IS_NOT_ACTIVE, "AmiGmail is not active");
     if (!value || !value[0]) return;
     (void)SetVar((STRPTR)MAIL_STATUS_VAR, (STRPTR)value, -1L,
                  GVF_GLOBAL_ONLY | GVF_SAVE_VAR);
@@ -252,14 +251,13 @@ void gui_state_set_mail_status_active(void)
      * remain ENV:-only, so a reboot always restores the safe inactive state. */
     ensure_saved_inactive_status();
     mail_status_shutdown_saved = 0;
-    set_mail_status_value(T("Keine neue(n) Mail(s)", "No new Mail"));
+    set_mail_status_value(T(MSG_NO_NEW_MAIL, "No new Mail"));
 }
 
 void gui_state_set_mail_status_inactive(void)
 {
     if (mail_status_shutdown_saved) {
-        set_mail_status_value(T("AmiGmail nicht aktiv",
-                                "AmiGmail is not active"));
+        set_mail_status_value(T(MSG_AMIGMAIL_IS_NOT_ACTIVE, "AmiGmail is not active"));
         return;
     }
     save_mail_status_inactive();
@@ -274,10 +272,9 @@ static void sync_mail_status(AmgGui *gui)
         return;
     }
     if (gui->inbox_unseen_count > 0UL)
-        value = T("Neue Mail(s) im Posteingang",
-                  "New mail(s) in Inbox");
+        value = T(MSG_NEW_MAIL_S_IN_INBOX, "New mail(s) in Inbox");
     else
-        value = T("Keine neue(n) Mail(s)", "No new Mail");
+        value = T(MSG_NO_NEW_MAIL, "No new Mail");
     set_mail_status_value(value);
 }
 

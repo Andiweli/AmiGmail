@@ -3,7 +3,7 @@
 #include "imap_parser.h"
 #include "i18n.h"
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 #include <ctype.h>
 #include <stdio.h>
@@ -51,40 +51,26 @@ static void set_parser_error(AmgError *error, int result,
     char message[256];
     if (result != AMG_ERR_LIMIT || !parser) {
         amg_error_set(error, result,
-                      T("IMAP-Antwort hat ein ung\303\274ltiges Format.", "IMAP response has an invalid format."));
+                      T(MSG_IMAP_RESPONSE_HAS_AN_INVALID_FORMAT, "IMAP response has an invalid format."));
         return;
     }
     switch (parser->failure) {
         case AMG_IMAP_PARSER_FAILURE_LINE_LIMIT:
-            amg_tr_snprintf(message, sizeof(message),
-                            "IMAP-Limit: Zeile %lu Bytes, erlaubt %lu Bytes.",
-                            "IMAP limit: line %lu bytes, allowed %lu bytes.",
-                            (unsigned long)parser->failure_size,
-                            (unsigned long)parser->failure_limit);
+            amg_tr_snprintf(message, sizeof(message), MSG_IMAP_LIMIT_LINE_VALUE_BYTES_ALLOWED_VALUE_BYTES, "IMAP limit: line %lu bytes, allowed %lu bytes.", (unsigned long)parser->failure_size, (unsigned long)parser->failure_limit);
             break;
         case AMG_IMAP_PARSER_FAILURE_LITERAL_LIMIT:
             if (parser->failure_size == SIZE_MAX)
                 snprintf(message, sizeof(message), "%s",
-                         T("IMAP-Limit: ung\303\274ltige Datenblock-Gr\303\266\303\237e.",
-                           "IMAP limit: invalid literal size."));
+                         T(MSG_IMAP_LIMIT_INVALID_LITERAL_SIZE, "IMAP limit: invalid literal size."));
             else
-                amg_tr_snprintf(message, sizeof(message),
-                                "IMAP-Limit: Datenblock %lu Bytes, erlaubt %lu Bytes.",
-                                "IMAP limit: literal %lu bytes, allowed %lu bytes.",
-                                (unsigned long)parser->failure_size,
-                                (unsigned long)parser->failure_limit);
+                amg_tr_snprintf(message, sizeof(message), MSG_IMAP_LIMIT_LITERAL_VALUE_BYTES_ALLOWED_VALUE_BYTES, "IMAP limit: literal %lu bytes, allowed %lu bytes.", (unsigned long)parser->failure_size, (unsigned long)parser->failure_limit);
             break;
         case AMG_IMAP_PARSER_FAILURE_BUFFER_LIMIT:
-            amg_tr_snprintf(message, sizeof(message),
-                            "IMAP-Limit: Puffer %lu Bytes, erlaubt %lu Bytes.",
-                            "IMAP limit: buffer %lu bytes, allowed %lu bytes.",
-                            (unsigned long)parser->failure_size,
-                            (unsigned long)parser->failure_limit);
+            amg_tr_snprintf(message, sizeof(message), MSG_IMAP_LIMIT_BUFFER_VALUE_BYTES_ALLOWED_VALUE_BYTES, "IMAP limit: buffer %lu bytes, allowed %lu bytes.", (unsigned long)parser->failure_size, (unsigned long)parser->failure_limit);
             break;
         default:
             snprintf(message, sizeof(message), "%s",
-                     T("IMAP-Limit wurde \303\274berschritten.",
-                       "IMAP limit was exceeded."));
+                     T(MSG_IMAP_LIMIT_WAS_EXCEEDED, "IMAP limit was exceeded."));
             break;
     }
     amg_error_set(error, result, message);
@@ -130,7 +116,7 @@ static int imap_collect(AmgImapSession *session, const char *tag, AmgBuffer *res
             if (response && amg_buffer_append(response, event.data, event.length) != AMG_OK) {
                 result = AMG_ERR_MEMORY;
                 amg_error_set(error, result,
-                              T("Nicht genug Speicher f\303\274r die IMAP-Antwort.", "Not enough memory for the IMAP response."));
+                              T(MSG_NOT_ENOUGH_MEMORY_FOR_THE_IMAP_RESPONSE, "Not enough memory for the IMAP response."));
                 done = 1;
                 break;
             }
@@ -173,13 +159,11 @@ static int imap_collect(AmgImapSession *session, const char *tag, AmgBuffer *res
     if (!ok) {
         if (rejection[0]) {
             char message[256];
-            amg_tr_snprintf(message, sizeof(message),
-                            "IMAP-Server: %s", "IMAP server: %s",
-                            rejection);
+            amg_tr_snprintf(message, sizeof(message), MSG_IMAP_SERVER_VALUE, "IMAP server: %s", rejection);
             amg_error_set(error, AMG_ERR_PROTOCOL, message);
         } else {
             amg_error_set(error, AMG_ERR_PROTOCOL,
-                          T("Der IMAP-Server hat den Befehl abgelehnt.", "The IMAP server rejected the command."));
+                          T(MSG_THE_IMAP_SERVER_REJECTED_THE_COMMAND, "The IMAP server rejected the command."));
         }
         return AMG_ERR_PROTOCOL;
     }
@@ -210,13 +194,13 @@ static int read_greeting(AmgImapSession *session, AmgError *error)
             if (!error || error->code == AMG_OK)
                 amg_error_set(
                     error, result,
-                    T("Gmail hat nach dem TLS-Aufbau keine IMAP-Daten gesendet.", "Gmail sent no IMAP data after the TLS connection was established."));
+                    T(MSG_GMAIL_SENT_NO_IMAP_DATA_AFTER_THE_TLS, "Gmail sent no IMAP data after the TLS connection was established."));
             break;
         }
         result = amg_buffer_append(&greeting, input, (size_t)count);
         if (result != AMG_OK) {
             amg_error_set(error, result,
-                          T("IMAP-Begr\303\274\303\237ung ist zu lang.", "IMAP greeting is too long."));
+                          T(MSG_IMAP_GREETING_IS_TOO_LONG, "IMAP greeting is too long."));
             break;
         }
         if (amg_imap_greeting_status(greeting.data, greeting.length) > 0) {
@@ -232,16 +216,14 @@ static int read_greeting(AmgImapSession *session, AmgError *error)
             if (length >= sizeof(detail)) length = sizeof(detail) - 1U;
             memcpy(detail, greeting.data, length);
             detail[length] = 0;
-            amg_tr_snprintf(message, sizeof(message),
-                            "IMAP-Server meldet: %s",
-                            "IMAP server reports: %s", detail);
+            amg_tr_snprintf(message, sizeof(message), MSG_IMAP_SERVER_REPORTS_VALUE, "IMAP server reports: %s", detail);
             amg_error_set(error, AMG_ERR_PROTOCOL, message);
             result = AMG_ERR_PROTOCOL;
             break;
         }
         if (greeting.length > AMIGMAIL_MAX_LINE) {
             amg_error_set(error, AMG_ERR_PROTOCOL,
-                          T("Gmail sendet keine g\303\274ltige IMAP-Begr\303\274\303\237ung.", "Gmail did not send a valid IMAP greeting."));
+                          T(MSG_GMAIL_DID_NOT_SEND_A_VALID_IMAP_GREETING, "Gmail did not send a valid IMAP greeting."));
             result = AMG_ERR_PROTOCOL;
             break;
         }
@@ -258,7 +240,7 @@ static int build_auth(const AmgAccount *account, const char *access_token,
     if (account->auth_mode == AMG_AUTH_OAUTH2) {
         if (!access_token) {
             result = AMG_ERR_AUTH;
-            amg_error_set(error, result, T("OAuth-Zugriffstoken fehlt.", "OAuth access token is missing."));
+            amg_error_set(error, result, T(MSG_OAUTH_ACCESS_TOKEN_IS_MISSING, "OAuth access token is missing."));
         }
         else {
             amg_buffer_append_cstr(&raw, "user="); amg_buffer_append_cstr(&raw, account->email); amg_buffer_append_char(&raw, 1);
@@ -269,7 +251,7 @@ static int build_auth(const AmgAccount *account, const char *access_token,
     } else {
         if (!account->app_password) {
             result = AMG_ERR_AUTH;
-            amg_error_set(error, result, T("Gmail-App-Passwort fehlt.", "Gmail app password is missing."));
+            amg_error_set(error, result, T(MSG_GMAIL_APP_PASSWORD_IS_MISSING, "Gmail app password is missing."));
         }
         else {
             amg_buffer_append_char(&raw, 0); amg_buffer_append_cstr(&raw, account->email); amg_buffer_append_char(&raw, 0); amg_buffer_append_cstr(&raw, account->app_password);
@@ -279,7 +261,7 @@ static int build_auth(const AmgAccount *account, const char *access_token,
     }
     if (result != AMG_OK && (!error || error->code == AMG_OK))
         amg_error_set(error, result,
-                      T("Gmail-Anmeldung konnte nicht vorbereitet werden.", "Gmail login could not be prepared."));
+                      T(MSG_GMAIL_LOGIN_COULD_NOT_BE_PREPARED, "Gmail login could not be prepared."));
     amg_secure_clear(raw.data, raw.capacity); amg_secure_clear(encoded.data, encoded.capacity);
     amg_buffer_free(&raw); amg_buffer_free(&encoded); return result;
 }
@@ -458,7 +440,7 @@ int amg_imap_select(AmgImapSession *session, const char *mailbox_utf8, AmgError 
         return AMG_ERR_ARGUMENT;
     resolved_mailbox=resolve_special_mailbox(session,mailbox_utf8);amg_buffer_init(&command);amg_buffer_init(&response);amg_buffer_append_cstr(&command,"SELECT ");
     result=quote_mailbox(resolved_mailbox,&command);if(result==AMG_OK){amg_buffer_terminate(&command);result=imap_command(session,(char*)command.data,&response,error);}
-    if(result==AMG_OK){amg_buffer_terminate(&response);if(!amg_imap_parse_exists(response.data,response.length,&exists)){result=AMG_ERR_PROTOCOL;amg_error_set(error,result,T("Gmail hat keine Nachrichtenanzahl f\303\274r den Ordner geliefert.", "Gmail did not provide a message count for the folder."));}}
+    if(result==AMG_OK){amg_buffer_terminate(&response);if(!amg_imap_parse_exists(response.data,response.length,&exists)){result=AMG_ERR_PROTOCOL;amg_error_set(error,result,T(MSG_GMAIL_DID_NOT_PROVIDE_A_MESSAGE_COUNT_FOR, "Gmail did not provide a message count for the folder."));}}
     if(result==AMG_OK){
         /* UIDVALIDITY identifies the current mailbox generation.  Persisted
          * notification UIDs are only comparable inside the same generation. */
@@ -492,7 +474,7 @@ int amg_imap_fetch_page(AmgImapSession *session, unsigned long before_uid,
                                                 before_uid, &sequence)) {
                 result = AMG_ERR_PROTOCOL;
                 amg_error_set(error, result,
-                              T("Position der n\303\244chsten Nachrichtenseite fehlt.", "Position of the next message page is missing."));
+                              T(MSG_POSITION_OF_THE_NEXT_MESSAGE_PAGE_IS_MISSING, "Position of the next message page is missing."));
             } else {
                 last = sequence > 1UL ? sequence - 1UL : 0UL;
             }
@@ -603,7 +585,7 @@ static int append_uid_fetch_batch(AmgImapSession *session,
                                    batch_response.length);
     if (result != AMG_OK && (!error || error->code == AMG_OK))
         amg_error_set(error, result,
-                      T("Nachrichtenliste konnte nicht geladen werden.", "Message list could not be loaded."));
+                      T(MSG_MESSAGE_LIST_COULD_NOT_BE_LOADED, "Message list could not be loaded."));
     amg_buffer_free(&command);
     amg_buffer_free(&batch_response);
     return result;
@@ -717,7 +699,7 @@ int amg_imap_fetch_recent(AmgImapSession *session, unsigned int days,
                                     &since_year);
     if (result != AMG_OK || since_month > 11UL) {
         amg_error_set(error, AMG_ERR_IO,
-                      T("Abrufdatum konnte nicht berechnet werden.", "Fetch date could not be calculated."));
+                      T(MSG_FETCH_DATE_COULD_NOT_BE_CALCULATED, "Fetch date could not be calculated."));
         return AMG_ERR_IO;
     }
 
@@ -731,7 +713,7 @@ int amg_imap_fetch_recent(AmgImapSession *session, unsigned int days,
                                          &uids, &uid_count);
     if (result != AMG_OK && (!error || error->code == AMG_OK))
         amg_error_set(error, result,
-                      T("Nachrichten im Abruf-Zeitraum konnten nicht ermittelt werden.", "Messages in the fetch period could not be determined."));
+                      T(MSG_MESSAGES_IN_THE_FETCH_PERIOD_COULD_NOT_BE, "Messages in the fetch period could not be determined."));
     amg_buffer_free(&search_response);
     if (result != AMG_OK) {
         free(uids);
@@ -775,7 +757,7 @@ int amg_imap_fetch_after_uid(AmgImapSession *session, unsigned long uid,
                                          &uids, &uid_count);
     if (result != AMG_OK && (!error || error->code == AMG_OK))
         amg_error_set(error, result,
-                      T("Neue Nachrichten konnten nicht ermittelt werden.", "New messages could not be determined."));
+                      T(MSG_NEW_MESSAGES_COULD_NOT_BE_DETERMINED, "New messages could not be determined."));
     amg_buffer_free(&search_response);
     if (result != AMG_OK) {
         free(uids);
@@ -941,8 +923,7 @@ static int imap_wait_append_continuation(AmgImapSession *session,
         long count;
         if (used + 1U >= sizeof(line)) {
             amg_error_set(error, AMG_ERR_PROTOCOL,
-                          T("IMAP-APPEND-Antwort ist zu lang.",
-                            "IMAP APPEND response is too long."));
+                          T(MSG_IMAP_APPEND_RESPONSE_IS_TOO_LONG, "IMAP APPEND response is too long."));
             return AMG_ERR_PROTOCOL;
         }
         count = amg_tls_read(session->connection, line + used, 1U, error);
@@ -959,8 +940,7 @@ static int imap_wait_append_continuation(AmgImapSession *session,
                               line[length - 1U] == '\n'))
                 --length;
             line[length] = 0;
-            amg_tr_snprintf(message, sizeof(message),
-                            "IMAP-Server: %s", "IMAP server: %s", line);
+            amg_tr_snprintf(message, sizeof(message), MSG_IMAP_SERVER_VALUE, "IMAP server: %s", line);
             amg_error_set(error, AMG_ERR_PROTOCOL, message);
             return AMG_ERR_PROTOCOL;
         }
@@ -989,7 +969,7 @@ int amg_imap_append_draft(AmgImapSession *session, const char *mailbox_utf8,
         size_t count = 0;
         if (!labels) {
             amg_error_set(error, AMG_ERR_MEMORY,
-                          T("Nicht genug Speicher.", "Not enough memory."));
+                          T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
             return AMG_ERR_MEMORY;
         }
         result = amg_imap_list_labels(session, labels, AMIGMAIL_MAX_LABELS,
@@ -1000,8 +980,7 @@ int amg_imap_append_draft(AmgImapSession *session, const char *mailbox_utf8,
     }
     if (!mailbox || !*mailbox || ascii_ci_equal(mailbox, "\\Drafts")) {
         amg_error_set(error, AMG_ERR_PROTOCOL,
-                      T("Der Gmail-Entwurfsordner wurde nicht gefunden.",
-                        "The Gmail Drafts folder was not found."));
+                      T(MSG_THE_GMAIL_DRAFTS_FOLDER_WAS_NOT_FOUND, "The Gmail Drafts folder was not found."));
         return AMG_ERR_PROTOCOL;
     }
 
@@ -1020,8 +999,7 @@ int amg_imap_append_draft(AmgImapSession *session, const char *mailbox_utf8,
     if (result != AMG_OK) {
         amg_buffer_free(&wire);
         amg_error_set(error, result,
-                      T("IMAP-APPEND-Befehl konnte nicht erstellt werden.",
-                        "IMAP APPEND command could not be created."));
+                      T(MSG_IMAP_APPEND_COMMAND_COULD_NOT_BE_CREATED, "IMAP APPEND command could not be created."));
         return result;
     }
 

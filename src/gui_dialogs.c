@@ -47,11 +47,10 @@
 
 #define ACCOUNT_PATH "ENVARC:AmiGmail/account.cfg"
 #define ACCOUNT_DRAWER "ENVARC:AmiGmail"
-#define GUI_ACCOUNT_FIELD_GAP 1
 #define GUI_ACCOUNT_LABEL_WIDTH 150
 #define GUI_ABOUT_BANNER_WIDTH 170L
 #define GUI_ABOUT_BANNER_HEIGHT 28L
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 enum AccountGadgetId {
     GID_ACCOUNT_NAME = 100,
@@ -89,7 +88,7 @@ static int ensure_config_drawer(AmgError *error)
     lock = CreateDir((CONST_STRPTR)ACCOUNT_DRAWER);
     if (!lock) {
         amg_error_set(error, AMG_ERR_IO,
-                      T("ENVARC:AmiGmail konnte nicht angelegt werden.", "ENVARC:AmiGmail could not be created."));
+                      T(MSG_ENVARC_AMIGMAIL_COULD_NOT_BE_CREATED, "ENVARC:AmiGmail could not be created."));
         return AMG_ERR_IO;
     }
     UnLock(lock);
@@ -210,8 +209,7 @@ static void choose_notification_sound(AmgGui *gui,
     requester = AllocAslRequestTags(
         ASL_FileRequest,
         ASLFR_TitleText,
-            (ULONG)(uintptr_t)T("Benachrichtigungston ausw\344hlen",
-                                "Select notification sound"),
+            (ULONG)(uintptr_t)T(MSG_SELECT_NOTIFICATION_SOUND, "Select notification sound"),
         ASLFR_Window, (ULONG)(uintptr_t)window,
         ASLFR_SleepWindow, TRUE,
         ASLFR_RejectIcons, TRUE,
@@ -237,12 +235,10 @@ static void choose_notification_sound(AmgGui *gui,
             if (gui_notify_preview_sound(gui, selected)) {
                 if (status_gadget)
                     set_string(status_gadget, window,
-                               T("Ton wird probeweise abgespielt...",
-                                 "Playing sound preview..."));
+                               T(MSG_PLAYING_SOUND_PREVIEW, "Playing sound preview..."));
             } else if (status_gadget) {
                 set_string(status_gadget, window,
-                           T("Tondatei konnte nicht geladen/abgespielt werden.",
-                             "Sound file could not be loaded/played."));
+                           T(MSG_SOUND_FILE_COULD_NOT_BE_LOADED_PLAYED, "Sound file could not be loaded/played."));
             }
             if (enabled_gadget) {
                 if (window)
@@ -307,7 +303,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
     if (hint_gap < 2UL) hint_gap = 2UL;
 
     dialog = WindowObject,
-        WA_Title, T("AmiGmail - Konto-Einstellungen", "AmiGmail - Account settings"),
+        WA_Title, T(MSG_AMIGMAIL_ACCOUNT_SETTINGS, "AmiGmail - Account settings"),
         WA_Flags, WFLG_CLOSEGADGET | WFLG_DRAGBAR | WFLG_DEPTHGADGET |
                       WFLG_ACTIVATE,
         WA_PubScreen, gui->screen,
@@ -333,15 +329,15 @@ int account_dialog(AmgGui *gui, AmgError *error)
              * layout.gadget verteilt freie Fensterhoehe sonst gleichmaessig
              * zwischen festen Kindern. Dadurch entstanden die grossen
              * vertikalen Luecken zwischen den Eingabezeilen. In dieser
-             * Gruppe bleiben nur die expliziten 1-Pixel-Abstaende erhalten. */
+             * Gruppe gelten die von ReAction vorgegebenen Innenabstaende. */
             LAYOUT_AddChild, VGroupObject,
                 LAYOUT_SpaceOuter, FALSE,
-                LAYOUT_SpaceInner, FALSE,
+                LAYOUT_SpaceInner, TRUE,
                 LAYOUT_ShrinkWrap, TRUE,
 
                 LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
-                    LAYOUT_AddChild, static_text_label(T("Name:", "Name:")),
+                    LAYOUT_AddChild, static_text_label(T(MSG_NAME, "Name:")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -356,16 +352,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
-                    LAYOUT_AddChild, static_text_label(T("Gmail-Adresse:", "Gmail address:")),
+                    LAYOUT_AddChild, static_text_label(T(MSG_GMAIL_ADDRESS, "Gmail address:")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -380,16 +368,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
-                    LAYOUT_AddChild, static_text_label(T("Gmail-App-Passwort:", "Gmail app password:")),
+                    LAYOUT_AddChild, static_text_label(T(MSG_GMAIL_APP_PASSWORD, "Gmail app password:")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -407,16 +387,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
-                    LAYOUT_AddChild, static_text_label(T("Master-Passwort:", "Master password:")),
+                    LAYOUT_AddChild, static_text_label(T(MSG_MASTER_PASSWORD, "Master password:")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -432,16 +404,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
-                    LAYOUT_AddChild, static_text_label(T("Abruf-Zeitraum (Tage):", "Fetch period (days):")),
+                    LAYOUT_AddChild, static_text_label(T(MSG_FETCH_PERIOD_DAYS, "Fetch period (days):")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -453,14 +417,6 @@ int account_dialog(AmgGui *gui, AmgError *error)
                             STRINGA_TextVal, fetch_days_text,
                         EndObject,
                     EndObject,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
@@ -485,16 +441,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                     CHILD_MaxWidth, 24,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild, static_text_label(
-                        T("Gmail-Abruf beim Start", "Fetch Gmail at startup")),
+                        T(MSG_FETCH_GMAIL_AT_STARTUP, "Fetch Gmail at startup")),
                 EndObject,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
@@ -519,17 +467,8 @@ int account_dialog(AmgGui *gui, AmgError *error)
                     CHILD_MaxWidth, 24,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild, static_text_label(
-                        T("Periodischer Abruf (5 Min.)",
-                          "Periodic fetch (5 min)")),
+                        T(MSG_PERIODIC_FETCH_5_MIN, "Periodic fetch (5 min)")),
                 EndObject,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
@@ -554,22 +493,14 @@ int account_dialog(AmgGui *gui, AmgError *error)
                     CHILD_MaxWidth, 24,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild, static_text_label(
-                        T("Benachrichtigungston", "Notification Sound")),
+                        T(MSG_NOTIFICATION_SOUND, "Notification Sound")),
                 EndObject,
-                CHILD_WeightedHeight, 0,
-
-                LAYOUT_AddChild, HGroupObject,
-                    LAYOUT_SpaceOuter, FALSE,
-                    LAYOUT_SpaceInner, FALSE,
-                EndObject,
-                CHILD_MinHeight, GUI_ACCOUNT_FIELD_GAP,
-                CHILD_MaxHeight, GUI_ACCOUNT_FIELD_GAP,
                 CHILD_WeightedHeight, 0,
 
                 LAYOUT_AddChild, HGroupObject,
                     LAYOUT_SpaceInner, TRUE,
                     LAYOUT_AddChild, static_text_label(
-                        T("Tondatei:", "Sound file:")),
+                        T(MSG_SOUND_FILE, "Sound file:")),
                     CHILD_MinWidth, GUI_ACCOUNT_LABEL_WIDTH,
                     CHILD_WeightedWidth, 0,
                     LAYOUT_AddChild,
@@ -610,7 +541,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                     GA_ID, GID_ACCOUNT_STATUS,
                     GA_ReadOnly, TRUE,
                     STRINGA_TextVal,
-                        T("Kein normales Google-Passwort verwenden.", "Do not use your normal Google password."),
+                        T(MSG_DO_NOT_USE_YOUR_NORMAL_GOOGLE_PASSWORD, "Do not use your normal Google password."),
                 EndObject,
             CHILD_WeightedHeight, 0,
 
@@ -628,17 +559,17 @@ int account_dialog(AmgGui *gui, AmgError *error)
                     GA_ID, GID_ACCOUNT_UNLOCK,
                     GA_RelVerify, TRUE,
                     GA_Disabled, stored_account_available ? FALSE : TRUE,
-                    GA_Text, T("_Entsperren", "_Unlock"),
+                    GA_Text, T(MSG_UNLOCK, "_Unlock"),
                 EndObject,
                 LAYOUT_AddChild, ButtonObject,
                     GA_ID, GID_ACCOUNT_SAVE,
                     GA_RelVerify, TRUE,
-                    GA_Text, T("_Speichern", "_Save"),
+                    GA_Text, T(MSG_SAVE, "_Save"),
                 EndObject,
                 LAYOUT_AddChild, ButtonObject,
                     GA_ID, GID_ACCOUNT_CANCEL,
                     GA_RelVerify, TRUE,
-                    GA_Text, T("Ab_brechen", "_Cancel"),
+                    GA_Text, T(MSG_CANCEL, "_Cancel"),
                 EndObject,
             EndObject,
             CHILD_WeightedHeight, 0,
@@ -651,7 +582,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
     if (!dialog) {
         amg_secure_clear(remembered_master, sizeof(remembered_master));
         amg_error_set(error, AMG_ERR_MEMORY,
-                      T("Kontodialog konnte nicht erzeugt werden.", "Account dialog could not be created."));
+                      T(MSG_ACCOUNT_DIALOG_COULD_NOT_BE_CREATED, "Account dialog could not be created."));
         return 0;
     }
     window = RA_OpenWindow(dialog);
@@ -659,7 +590,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
         DisposeObject(dialog);
         amg_secure_clear(remembered_master, sizeof(remembered_master));
         amg_error_set(error, AMG_ERR_IO,
-                      T("Kontodialog konnte nicht ge\303\266ffnet werden.", "Account dialog could not be opened."));
+                      T(MSG_ACCOUNT_DIALOG_COULD_NOT_BE_OPENED, "Account dialog could not be opened."));
         return 0;
     }
     GetAttr(WINDOW_SigMask, dialog, &signal_mask);
@@ -720,19 +651,17 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                 if (!stored_account_available) {
                                     set_string(
                                         dialog_status, window,
-                                        T("Noch kein Konto gespeichert. Bitte Speichern verwenden.",
-                                          "No account has been saved yet. Please use Save."));
+                                        T(MSG_NO_ACCOUNT_HAS_BEEN_SAVED_YET_PLEASE_USE, "No account has been saved yet. Please use Save."));
                                     break;
                                 }
                                 if (!*master) {
                                     set_string(dialog_status, window,
-                                               T("Master-Passwort eingeben.", "Enter the master password."));
+                                               T(MSG_ENTER_THE_MASTER_PASSWORD, "Enter the master password."));
                                     break;
                                 }
                                 set_string(
                                     dialog_status, window,
-                                    T("Kontodaten werden entschl\374sselt...",
-                                      "Decrypting account data..."));
+                                    T(MSG_DECRYPTING_ACCOUNT_DATA, "Decrypting account data..."));
                                 RefreshGList(dialog_status, window, NULL, 1);
                                 amg_account_init(&loaded);
                                 if (amg_storage_load_account(
@@ -778,7 +707,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                 if (!*master) {
                                     set_string(
                                         dialog_status, window,
-                                        T("Master-Passwort zum Verschl\374sseln eingeben.", "Enter a master password for encryption."));
+                                        T(MSG_ENTER_A_MASTER_PASSWORD_FOR_ENCRYPTION, "Enter a master password for encryption."));
                                     break;
                                 }
                                 amg_account_init(&candidate);
@@ -802,7 +731,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                     amg_account_clear(&candidate);
                                     set_string(
                                         dialog_status, window,
-                                        T("Abruf-Zeitraum: 1 bis 3650 Tage eingeben.", "Fetch period: enter 1 to 3650 days."));
+                                        T(MSG_FETCH_PERIOD_ENTER_1_TO_3650_DAYS, "Fetch period: enter 1 to 3650 days."));
                                     break;
                                 }
                                 candidate.fetch_days = (unsigned int)fetch_days;
@@ -833,8 +762,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                         amg_account_clear(&candidate);
                                         set_string(
                                             dialog_status, window,
-                                            T("Bitte eine IFF/8SVX/WAV-Tondatei ausw\344hlen.",
-                                              "Please select an IFF/8SVX/WAV sound file."));
+                                            T(MSG_PLEASE_SELECT_AN_IFF_8SVX_WAV_SOUND_FILE, "Please select an IFF/8SVX/WAV sound file."));
                                         break;
                                     }
                                     sound_lock = Lock(
@@ -844,8 +772,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                         amg_account_clear(&candidate);
                                         set_string(
                                             dialog_status, window,
-                                            T("Die gew\344hlte Tondatei wurde nicht gefunden.",
-                                              "The selected sound file was not found."));
+                                            T(MSG_THE_SELECTED_SOUND_FILE_WAS_NOT_FOUND, "The selected sound file was not found."));
                                         break;
                                     }
                                     UnLock(sound_lock);
@@ -858,7 +785,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                         normalized_password) != AMG_OK) {
                                     amg_account_clear(&candidate);
                                     set_string(dialog_status, window,
-                                               T("Nicht genug Speicher.", "Not enough memory."));
+                                               T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
                                     break;
                                 }
                                 if (amg_account_validate(&candidate, error) !=
@@ -870,8 +797,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
                                 }
                                 set_string(
                                     dialog_status, window,
-                                    T("Kontodaten werden verschl\374sselt...",
-                                      "Encrypting account data..."));
+                                    T(MSG_ENCRYPTING_ACCOUNT_DATA, "Encrypting account data..."));
                                 RefreshGList(dialog_status, window, NULL, 1);
                                 if (ensure_config_drawer(error) != AMG_OK ||
                                     amg_storage_save_account(
@@ -907,8 +833,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
          * signal into the main event loop. */
         if (periodic_fetch_changed)
             periodic_timer_restart(gui);
-        status_local(gui, T("Konto ist eingerichtet und entsperrt.",
-                            "Account is configured and unlocked."));
+        status_local(gui, T(MSG_ACCOUNT_IS_CONFIGURED_AND_UNLOCKED, "Account is configured and unlocked."));
     }
     if (changed && network_was_running && network_settings_changed &&
         !account_is_locked(gui->account)) {
@@ -917,8 +842,7 @@ int account_dialog(AmgGui *gui, AmgError *error)
         if (result == AMG_OK) {
             gui->network_reconfigure_pending = 1;
             status_local(gui,
-                T("Verbinde erneut mit Gmail...",
-                  "Reconnecting to Gmail..."));
+                T(MSG_RECONNECTING_TO_GMAIL, "Reconnecting to Gmail..."));
         } else {
             status_utf8(gui, error->message);
         }
@@ -981,7 +905,7 @@ void about_dialog(AmgGui *gui)
      * RA_OpenWindow(). Dadurch erscheint der About-Requester sofort sauber
      * zentriert ueber dem AmiGmail-Hauptfenster und springt nicht nachtraeglich. */
     dialog = WindowObject,
-        WA_Title, T("\334ber AmiGmail", "About AmiGmail"),
+        WA_Title, T(MSG_ABOUT_AMIGMAIL, "About AmiGmail"),
         WA_PubScreen, gui->screen,
         WA_Flags, WFLG_CLOSEGADGET | WFLG_DRAGBAR | WFLG_DEPTHGADGET |
                   WFLG_ACTIVATE,
@@ -1017,14 +941,12 @@ void about_dialog(AmgGui *gui)
                     CHILD_MaxHeight, line_height,
                     CHILD_WeightedHeight, 0,
                     LAYOUT_AddChild,
-                        static_text_label(T("Gmail-Client f\374r AmigaOS 3.2",
-                                            "Gmail client for AmigaOS 3.2")),
+                        static_text_label(T(MSG_GMAIL_CLIENT_FOR_AMIGAOS_3_2, "Gmail client for AmigaOS 3.2")),
                     CHILD_MinHeight, line_height,
                     CHILD_MaxHeight, line_height,
                     CHILD_WeightedHeight, 0,
                     LAYOUT_AddChild,
-                        static_text_label(T("ReAction, IMAP, SMTP und AmiSSL",
-                                            "ReAction, IMAP, SMTP and AmiSSL")),
+                        static_text_label(T(MSG_REACTION_IMAP_SMTP_AND_AMISSL, "ReAction, IMAP, SMTP and AmiSSL")),
                     CHILD_MinHeight, line_height,
                     CHILD_MaxHeight, line_height,
                     CHILD_WeightedHeight, 0,
@@ -1054,34 +976,27 @@ void about_dialog(AmgGui *gui)
             CHILD_WeightedHeight, 0,
 
             LAYOUT_AddChild,
-                static_text_label(T("Rechtlicher Hinweis:", "Legal notice:")),
+                static_text_label(T(MSG_LEGAL_NOTICE, "Legal notice:")),
             CHILD_MinHeight, line_height,
             CHILD_MaxHeight, line_height,
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild,
-                static_text_label(T(
-                    "AmiGmail ist ein unabh\344ngiges, nichtkommerzielles Freizeitprojekt.",
-                    "AmiGmail is an independent, non-commercial hobby project.")),
+                static_text_label(T(MSG_AMIGMAIL_IS_AN_INDEPENDENT_NON_COMMERCIAL_HOBBY_PROJECT, "AmiGmail is an independent, non-commercial hobby project.")),
             CHILD_MinHeight, line_height,
             CHILD_MaxHeight, line_height,
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild,
-                static_text_label(T(
-                    "Es steht in keiner Verbindung zu Google LLC und wird von Google",
-                    "It is not affiliated with Google LLC and is not developed,")),
+                static_text_label(T(MSG_IT_IS_NOT_AFFILIATED_WITH_GOOGLE_LLC_AND, "It is not affiliated with Google LLC and is not developed,")),
             CHILD_MinHeight, line_height,
             CHILD_MaxHeight, line_height,
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild,
-                static_text_label(T(
-                    "weder entwickelt, unterst\374tzt noch gesponsert.",
-                    "supported or sponsored by Google.")),
+                static_text_label(T(MSG_SUPPORTED_OR_SPONSORED_BY_GOOGLE, "supported or sponsored by Google.")),
             CHILD_MinHeight, line_height,
             CHILD_MaxHeight, line_height,
             CHILD_WeightedHeight, 0,
             LAYOUT_AddChild,
-                static_text_label(T("Gmail ist eine Marke von Google LLC.",
-                                    "Gmail is a trademark of Google LLC.")),
+                static_text_label(T(MSG_GMAIL_IS_A_TRADEMARK_OF_GOOGLE_LLC, "Gmail is a trademark of Google LLC.")),
             CHILD_MinHeight, line_height,
             CHILD_MaxHeight, line_height,
             CHILD_WeightedHeight, 0,
@@ -1243,12 +1158,12 @@ int confirm_question_dialog_for_window(AmgGui *gui,
                 LAYOUT_AddChild, ButtonObject,
                     GA_ID, GID_CONFIRM_YES,
                     GA_RelVerify, TRUE,
-                    GA_Text, T("_Ja", "_Yes"),
+                    GA_Text, T(MSG_YES, "_Yes"),
                 EndObject,
                 LAYOUT_AddChild, ButtonObject,
                     GA_ID, GID_CONFIRM_NO,
                     GA_RelVerify, TRUE,
-                    GA_Text, T("_Nein", "_No"),
+                    GA_Text, T(MSG_NO, "_No"),
                 EndObject,
             EndObject,
             CHILD_MinHeight, button_height,
@@ -1309,22 +1224,21 @@ static int confirm_question_dialog(AmgGui *gui, const char *question,
 int confirm_delete_dialog(AmgGui *gui)
 {
     return confirm_question_dialog(
-        gui, T("Mail wirklich l\366schen?", "Really delete mail?"),
-        T("Dieser Vorgang kann nicht widerrufen werden.",
-          "This action cannot be undone."), 310L);
+        gui, T(MSG_REALLY_DELETE_MAIL, "Really delete mail?"),
+        T(MSG_THIS_ACTION_CANNOT_BE_UNDONE, "This action cannot be undone."), 310L);
 }
 
 int confirm_empty_trash_dialog(AmgGui *gui)
 {
     return confirm_question_dialog(
-        gui, T("Papierkorb wirklich leeren?", "Really empty Trash?"),
+        gui, T(MSG_REALLY_EMPTY_TRASH, "Really empty Trash?"),
         NULL, 280L);
 }
 
 int confirm_empty_spam_dialog(AmgGui *gui)
 {
     return confirm_question_dialog(
-        gui, T("Spam wirklich leeren?", "Really empty Spam?"),
+        gui, T(MSG_REALLY_EMPTY_SPAM, "Really empty Spam?"),
         NULL, 280L);
 }
 

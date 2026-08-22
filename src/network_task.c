@@ -6,7 +6,7 @@
 #include "update.h"
 #include "i18n.h"
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +90,7 @@ static int copy_account_deep(AmgAccount *destination,
         amg_account_set_secret(&copy.refresh_token, source->refresh_token) != AMG_OK) {
         amg_account_clear(&copy);
         amg_error_set(error, AMG_ERR_MEMORY,
-                      T("Nicht genug Speicher.", "Not enough memory."));
+                      T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
         return AMG_ERR_MEMORY;
     }
     amg_account_clear(destination);
@@ -110,45 +110,43 @@ static const char *network_operation(AmgNetCommandType type)
 {
     switch (type) {
         case AMG_NET_CONNECT:
-            return T("IMAP-Verbindung", "IMAP connection");
+            return T(MSG_IMAP_CONNECTION, "IMAP connection");
         case AMG_NET_RECONFIGURE:
-            return T("Gmail-Verbindung neu konfigurieren",
-                     "reconfigure Gmail connection");
+            return T(MSG_RECONFIGURE_GMAIL_CONNECTION, "reconfigure Gmail connection");
         case AMG_NET_FETCH_LABELS:
-            return T("Gmail-Labels abrufen", "fetch Gmail labels");
+            return T(MSG_FETCH_GMAIL_LABELS, "fetch Gmail labels");
         case AMG_NET_FETCH_INBOX:
-            return T("Posteingang abrufen", "fetch folder");
+            return T(MSG_FETCH_FOLDER, "fetch folder");
         case AMG_NET_CHECK_INBOX:
-            return T("Posteingang periodisch pr\303\274fen",
-                     "periodic Inbox check");
+            return T(MSG_PERIODIC_INBOX_CHECK, "periodic Inbox check");
         case AMG_NET_FETCH_MESSAGE:
-            return T("Nachricht abrufen", "fetch message");
+            return T(MSG_FETCH_MESSAGE, "fetch message");
         case AMG_NET_SET_SEEN:
-            return T("Lesestatus setzen", "set read status");
+            return T(MSG_SET_READ_STATUS, "set read status");
         case AMG_NET_SET_FLAGGED:
-            return T("Sternmarkierung setzen", "set star");
+            return T(MSG_SET_STAR, "set star");
         case AMG_NET_DELETE:
-            return T("Nachricht l\303\266schen", "delete message");
+            return T(MSG_DELETE_MESSAGE, "delete message");
         case AMG_NET_MOVE:
-            return T("Nachricht verschieben", "move message");
+            return T(MSG_MOVE_MESSAGE, "move message");
         case AMG_NET_EMPTY_TRASH:
-            return T("Papierkorb leeren", "empty Trash");
+            return T(MSG_EMPTY_TRASH_8804, "empty Trash");
         case AMG_NET_EMPTY_SPAM:
-            return T("Spam leeren", "empty Spam");
+            return T(MSG_EMPTY_SPAM_24AD, "empty Spam");
         case AMG_NET_SAVE_DRAFT:
-            return T("Entwurf speichern", "save draft");
+            return T(MSG_SAVE_DRAFT, "save draft");
         case AMG_NET_SEND_DRAFT:
-            return T("Entwurf senden", "send draft");
+            return T(MSG_SEND_DRAFT, "send draft");
         case AMG_NET_SEND_REPLY:
-            return T("Antwort senden", "send reply");
+            return T(MSG_SEND_REPLY, "send reply");
         case AMG_NET_SEND_MAIL:
-            return T("Mail senden", "send mail");
+            return T(MSG_SEND_MAIL, "send mail");
         case AMG_NET_CHECK_UPDATE:
-            return T("AmiGmail-Update pr\303\274fen", "check AmiGmail update");
+            return T(MSG_CHECK_AMIGMAIL_UPDATE, "check AmiGmail update");
         case AMG_NET_DOWNLOAD_UPDATE:
-            return T("AmiGmail-Update herunterladen", "download AmiGmail update");
+            return T(MSG_DOWNLOAD_AMIGMAIL_UPDATE, "download AmiGmail update");
         default:
-            return T("Netzwerkzugriff", "network access");
+            return T(MSG_NETWORK_ACCESS, "network access");
     }
 }
 
@@ -163,10 +161,7 @@ static void qualify_error(AmgNetCommandType type, int result,
         snprintf(message, sizeof(message), "%s: %.190s (Code %d)",
                  network_operation(type), detail, result);
     else
-        amg_tr_snprintf(message, sizeof(message),
-                        "%s fehlgeschlagen (Code %d).",
-                        "%s failed (code %d).",
-                        network_operation(type), result);
+        amg_tr_snprintf(message, sizeof(message), MSG_VALUE_FAILED_CODE_VALUE, "%s failed (code %d).", network_operation(type), result);
     amg_error_set(error, result, message);
 }
 
@@ -189,8 +184,7 @@ static int connect_network_account(AmgNetwork *network,
         if (!AMIGMAIL_OAUTH_CLIENT_ID[0]) {
             amg_error_set(
                 error, AMG_ERR_AUTH,
-                T("OAuth-Client-ID ist im Build nicht eingerichtet.",
-                  "OAuth client ID is not configured in this build."));
+                T(MSG_OAUTH_CLIENT_ID_IS_NOT_CONFIGURED_IN_THIS, "OAuth client ID is not configured in this build."));
             result = AMG_ERR_AUTH;
         } else {
             result = amg_oauth_refresh(
@@ -335,7 +329,7 @@ static void network_worker(void)
                     size_t count = 0, i;
                     if (!labels) {
                         result = AMG_ERR_MEMORY;
-                        amg_error_set(&error, result, T("Nicht genug Speicher.", "Not enough memory."));
+                        amg_error_set(&error, result, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
                         break;
                     }
                     result = amg_imap_list_labels(&imap, labels,
@@ -354,7 +348,7 @@ static void network_worker(void)
                                                   (size_t)length) != AMG_OK) {
                                 result = AMG_ERR_MEMORY;
                                 amg_error_set(&error, result,
-                                              T("Nicht genug Speicher.", "Not enough memory."));
+                                              T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
                                 break;
                             }
                         }
@@ -474,8 +468,7 @@ static void network_worker(void)
                         result = AMG_ERR_IO;
                         amg_error_set(
                             &error, result,
-                            T("IMAP-Verbindung f\303\274r den Entwurf fehlt.",
-                              "IMAP connection for the draft is unavailable."));
+                            T(MSG_IMAP_CONNECTION_FOR_THE_DRAFT_IS_UNAVAILABLE, "IMAP connection for the draft is unavailable."));
                         break;
                     }
                     result = send_new_mail(network, message,
@@ -531,8 +524,7 @@ static void network_worker(void)
                 default:
                     result = AMG_ERR_ARGUMENT;
                     amg_error_set(&error, result,
-                                  T("Unbekannter Netzwerkauftrag.",
-                                    "Unknown network request."));
+                                  T(MSG_UNKNOWN_NETWORK_REQUEST, "Unknown network request."));
                     break;
             }
             if ((result == AMG_ERR_IO || result == AMG_ERR_TLS) &&
@@ -581,7 +573,7 @@ int amg_network_start(AmgNetwork *network, const AmgAccount *account,
     if (!network->responses) network->responses = CreateMsgPort();
     if (!network->commands || !network->responses) {
         amg_error_set(error, AMG_ERR_MEMORY,
-                      T("Message Ports konnten nicht erstellt werden.", "Message ports could not be created."));
+                      T(MSG_MESSAGE_PORTS_COULD_NOT_BE_CREATED, "Message ports could not be created."));
         return AMG_ERR_MEMORY;
     }
     if (copy_account_deep(&network->account, account, error) != AMG_OK)
@@ -597,7 +589,7 @@ int amg_network_start(AmgNetwork *network, const AmgAccount *account,
     if (!network->process) {
         starting_network = NULL;
         amg_error_set(error, AMG_ERR_IO,
-                      T("Netzwerkprozess konnte nicht gestartet werden.", "Network process could not be started."));
+                      T(MSG_NETWORK_PROCESS_COULD_NOT_BE_STARTED, "Network process could not be started."));
         return AMG_ERR_IO;
     }
     while (!network->worker_ready)
@@ -627,7 +619,7 @@ int amg_network_request(AmgNetwork *network, AmgNetCommandType type,
     if (!network || !network->running) return AMG_ERR_ARGUMENT;
     message = new_message(network, type);
     if (!message) {
-        amg_error_set(error, AMG_ERR_MEMORY, T("Nicht genug Speicher.", "Not enough memory."));
+        amg_error_set(error, AMG_ERR_MEMORY, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
         return AMG_ERR_MEMORY;
     }
     message->uid = uid;
@@ -646,7 +638,7 @@ int amg_network_request_reconfigure(AmgNetwork *network,
     message = new_message(network, AMG_NET_RECONFIGURE);
     if (!message) {
         amg_error_set(error, AMG_ERR_MEMORY,
-                      T("Nicht genug Speicher.", "Not enough memory."));
+                      T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
         return AMG_ERR_MEMORY;
     }
     if (copy_account_deep(&message->account_update, account, error) != AMG_OK) {
@@ -669,12 +661,12 @@ int amg_network_request_reply(AmgNetwork *network, const AmgReplyDraft *draft,
         !text_fits(draft->references, 1024U) ||
         !text_fits(draft->date_rfc2822, 96U) ||
         !text_fits(draft->message_id, 256U)) {
-        amg_error_set(error, AMG_ERR_LIMIT, T("Antwortentwurf ist zu gro\303\237.", "Reply draft is too large."));
+        amg_error_set(error, AMG_ERR_LIMIT, T(MSG_REPLY_DRAFT_IS_TOO_LARGE, "Reply draft is too large."));
         return AMG_ERR_LIMIT;
     }
     message = new_message(network, AMG_NET_SEND_REPLY);
     if (!message) {
-        amg_error_set(error, AMG_ERR_MEMORY, T("Nicht genug Speicher.", "Not enough memory."));
+        amg_error_set(error, AMG_ERR_MEMORY, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
         return AMG_ERR_MEMORY;
     }
     copy_text(message->from, sizeof(message->from), draft->from);
@@ -711,7 +703,7 @@ static int request_mail_message(AmgNetwork *network,
         !text_fits(draft->message_id, 256U) ||
         !text_fits(draft->in_reply_to, 512U) ||
         !text_fits(draft->references, 1024U)) {
-        amg_error_set(error, AMG_ERR_LIMIT, T("Mailentwurf ist zu gro\303\237.", "Mail draft is too large."));
+        amg_error_set(error, AMG_ERR_LIMIT, T(MSG_MAIL_DRAFT_IS_TOO_LARGE, "Mail draft is too large."));
         return AMG_ERR_LIMIT;
     }
     for (i = 0; i < draft->attachment_count; ++i) {
@@ -720,14 +712,14 @@ static int request_mail_message(AmgNetwork *network,
             !text_fits(draft->attachments[i].name_utf8, AMG_NET_NAME_MAX) ||
             draft->attachments[i].size > AMG_MAIL_MAX_ATTACHMENT_TOTAL - total) {
             amg_error_set(error, AMG_ERR_LIMIT,
-                          T("Dateianlagen d\303\274rfen zusammen h\303\266chstens 10 MB gro\303\237 sein.", "Attachments may total no more than 10 MB."));
+                          T(MSG_ATTACHMENTS_MAY_TOTAL_NO_MORE_THAN_10_MB_UTF8, "Attachments may total no more than 10 MB."));
             return AMG_ERR_LIMIT;
         }
         total += draft->attachments[i].size;
     }
     message = new_message(network, type);
     if (!message) {
-        amg_error_set(error, AMG_ERR_MEMORY, T("Nicht genug Speicher.", "Not enough memory."));
+        amg_error_set(error, AMG_ERR_MEMORY, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
         return AMG_ERR_MEMORY;
     }
     copy_text(message->from, sizeof(message->from), draft->from);
@@ -771,8 +763,7 @@ int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
 {
     if (!draft_mailbox || !*draft_mailbox) {
         amg_error_set(error, AMG_ERR_ARGUMENT,
-                      T("Der Gmail-Entwurfsordner ist nicht bekannt.",
-                        "The Gmail Drafts folder is unknown."));
+                      T(MSG_THE_GMAIL_DRAFTS_FOLDER_IS_UNKNOWN, "The Gmail Drafts folder is unknown."));
         return AMG_ERR_ARGUMENT;
     }
     return request_mail_message(network, draft, AMG_NET_SAVE_DRAFT,
@@ -786,8 +777,7 @@ int amg_network_request_draft_replace(AmgNetwork *network,
 {
     if (!old_uid || !draft_mailbox || !*draft_mailbox) {
         amg_error_set(error, AMG_ERR_ARGUMENT,
-                      T("Der zu ersetzende Entwurf ist nicht bekannt.",
-                        "The draft to replace is unknown."));
+                      T(MSG_THE_DRAFT_TO_REPLACE_IS_UNKNOWN, "The draft to replace is unknown."));
         return AMG_ERR_ARGUMENT;
     }
     return request_mail_message(network, draft, AMG_NET_SAVE_DRAFT,
@@ -802,8 +792,7 @@ int amg_network_request_mail_from_draft(AmgNetwork *network,
 {
     if (!old_uid || !draft_mailbox || !*draft_mailbox) {
         amg_error_set(error, AMG_ERR_ARGUMENT,
-                      T("Der zu sendende Entwurf ist nicht bekannt.",
-                        "The draft to send is unknown."));
+                      T(MSG_THE_DRAFT_TO_SEND_IS_UNKNOWN, "The draft to send is unknown."));
         return AMG_ERR_ARGUMENT;
     }
     return request_mail_message(network, draft, AMG_NET_SEND_DRAFT,
@@ -898,8 +887,7 @@ int amg_network_start(AmgNetwork *network, const AmgAccount *account,
     (void)network;
     (void)account;
     amg_error_set(error, AMG_ERR_UNSUPPORTED,
-                  T("Netzwerk-Task nur unter AmigaOS.",
-                    "Network task is available only on AmigaOS."));
+                  T(MSG_NETWORK_TASK_IS_AVAILABLE_ONLY_ON_AMIGAOS, "Network task is available only on AmigaOS."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -934,7 +922,7 @@ int amg_network_request(AmgNetwork *network, AmgNetCommandType type,
     (void)uid;
     (void)argument1;
     (void)argument2;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -944,7 +932,7 @@ int amg_network_request_reconfigure(AmgNetwork *network,
 {
     (void)network;
     (void)account;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -953,7 +941,7 @@ int amg_network_request_reply(AmgNetwork *network, const AmgReplyDraft *draft,
 {
     (void)network;
     (void)draft;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -962,7 +950,7 @@ int amg_network_request_mail(AmgNetwork *network, const AmgMailDraft *draft,
 {
     (void)network;
     (void)draft;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -972,7 +960,7 @@ int amg_network_request_draft(AmgNetwork *network, const AmgMailDraft *draft,
     (void)network;
     (void)draft;
     (void)draft_mailbox;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -985,7 +973,7 @@ int amg_network_request_draft_replace(AmgNetwork *network,
     (void)draft;
     (void)draft_mailbox;
     (void)old_uid;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 
@@ -999,7 +987,7 @@ int amg_network_request_mail_from_draft(AmgNetwork *network,
     (void)draft;
     (void)draft_mailbox;
     (void)old_uid;
-    amg_error_set(error, AMG_ERR_UNSUPPORTED, T("Nur AmigaOS.", "AmigaOS only."));
+    amg_error_set(error, AMG_ERR_UNSUPPORTED, T(MSG_AMIGAOS_ONLY, "AmigaOS only."));
     return AMG_ERR_UNSUPPORTED;
 }
 

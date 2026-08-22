@@ -4,7 +4,7 @@
 #include "tls.h"
 #include "i18n.h"
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,10 +130,10 @@ done:
     amg_secure_clear(key, sizeof(key));
     amg_tls_global_cleanup();
     if (result == AMG_ERR_MEMORY)
-        amg_error_set(error, result, T("Nicht genug Speicher.", "Not enough memory."));
+        amg_error_set(error, result, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
     else if (result != AMG_OK)
         amg_error_set(error, result,
-                      T("AmiSSL konnte die Kontodaten nicht verschl\303\274sseln.", "AmiSSL could not encrypt the account data."));
+                      T(MSG_AMISSL_COULD_NOT_ENCRYPT_THE_ACCOUNT_DATA, "AmiSSL could not encrypt the account data."));
     return result;
 }
 
@@ -185,7 +185,7 @@ done:
     amg_secure_clear(key, sizeof(key));
     amg_tls_global_cleanup();
     if (result == AMG_ERR_MEMORY)
-        amg_error_set(error, result, T("Nicht genug Speicher.", "Not enough memory."));
+        amg_error_set(error, result, T(MSG_NOT_ENOUGH_MEMORY, "Not enough memory."));
     return result;
 }
 #endif
@@ -200,7 +200,7 @@ int amg_storage_save_account(const char *path,const AmgAccount *account,const ch
     if (!path || !account) return AMG_ERR_ARGUMENT;
     if (strlen(path) + 5U >= sizeof(temporary)) return AMG_ERR_LIMIT;
     snprintf(temporary,sizeof(temporary),"%s.new",path);
-    file=fopen(temporary,"wb");if(!file){amg_error_set(error,AMG_ERR_IO,T("Kontodatei konnte nicht geschrieben werden.", "Account file could not be written."));return AMG_ERR_IO;}
+    file=fopen(temporary,"wb");if(!file){amg_error_set(error,AMG_ERR_IO,T(MSG_ACCOUNT_FILE_COULD_NOT_BE_WRITTEN, "Account file could not be written."));return AMG_ERR_IO;}
     amg_buffer_init(&plain);amg_buffer_init(&cipher);fprintf(file,"%s",STORAGE_HEADER);
     if(write_hex_line(file,"display_name",(const unsigned char*)account->display_name,strlen(account->display_name))!=AMG_OK||
        write_hex_line(file,"email",(const unsigned char*)account->email,strlen(account->email))!=AMG_OK||
@@ -231,7 +231,7 @@ int amg_storage_save_account(const char *path,const AmgAccount *account,const ch
     if(result!=AMG_OK)discard_file(temporary);
     if(result==AMG_OK)amg_error_set(error,AMG_OK,"");
     else if(!error||error->code==AMG_OK)
-        amg_error_set(error,result,T("Kontodatei konnte nicht sicher gespeichert werden.", "Account file could not be saved securely."));
+        amg_error_set(error,result,T(MSG_ACCOUNT_FILE_COULD_NOT_BE_SAVED_SECURELY, "Account file could not be saved securely."));
     return result;
 }
 
@@ -283,10 +283,10 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
     amg_error_set(error,AMG_OK,"");
     if (!path || !account) return AMG_ERR_ARGUMENT;
     data=read_all(path,&length);(void)length;
-    if(!data){amg_error_set(error,AMG_ERR_IO,T("Es wurde noch keine Kontodatei gespeichert. Bitte zuerst Speichern verwenden.", "No account file has been saved yet. Please use Save first."));return AMG_ERR_IO;}
+    if(!data){amg_error_set(error,AMG_ERR_IO,T(MSG_NO_ACCOUNT_FILE_HAS_BEEN_SAVED_YET_PLEASE, "No account file has been saved yet. Please use Save first."));return AMG_ERR_IO;}
     if(strncmp(data,STORAGE_HEADER,sizeof(STORAGE_HEADER)-1U)){
         free(data);
-        amg_error_set(error,AMG_ERR_PARSE,T("Kontodatei ist ung\303\274ltig.", "Account file is invalid."));
+        amg_error_set(error,AMG_ERR_PARSE,T(MSG_ACCOUNT_FILE_IS_INVALID, "Account file is invalid."));
         return AMG_ERR_PARSE;
     }
     amg_account_init(account);amg_buffer_init(&decoded);
@@ -360,7 +360,7 @@ int amg_storage_load_account(const char *path,const char *master_password,AmgAcc
     amg_secure_clear(remembered_master,sizeof(remembered_master));
     amg_secure_clear(decoded.data,decoded.capacity);amg_buffer_free(&decoded);amg_secure_clear(data,strlen(data));free(data);
     if(result==AMG_OK)amg_error_set(error,AMG_OK,"");
-    else if(result==AMG_ERR_AUTH)amg_error_set(error,result,T("Master-Passwort fehlt oder ist falsch.", "Master password is missing or incorrect."));
-    else if(!error||error->code==AMG_OK)amg_error_set(error,result,T("Kontodatei ist ung\303\274ltig.", "Account file is invalid."));
+    else if(result==AMG_ERR_AUTH)amg_error_set(error,result,T(MSG_MASTER_PASSWORD_IS_MISSING_OR_INCORRECT, "Master password is missing or incorrect."));
+    else if(!error||error->code==AMG_OK)amg_error_set(error,result,T(MSG_ACCOUNT_FILE_IS_INVALID, "Account file is invalid."));
     return result;
 }

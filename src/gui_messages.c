@@ -22,7 +22,7 @@
 #include <reaction/reaction_macros.h>
 #include <utility/tagitem.h>
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 /* AmigaOS character 0xb7 is used as the compact marker for a flagged mail. */
 static const char message_flag_marker[] = { (char)0xb7, '\0' };
@@ -227,8 +227,7 @@ static void sender_name_only(char *sender, size_t capacity)
 void default_messages(AmgGui *gui)
 {
     struct Node *node = message_placeholder_node(
-        T("Noch nicht verbunden - 'Abrufen' startet die Gmail-Verbindung.",
-          "Not connected yet - 'Fetch' starts the Gmail connection."));
+        T(MSG_NOT_CONNECTED_YET_FETCH_STARTS_THE_GMAIL_CONNECTION, "Not connected yet - 'Fetch' starts the Gmail connection."));
     if (node) AddTail(&gui->messages_list, node);
 }
 
@@ -373,8 +372,8 @@ void set_message_party_column_mode(AmgGui *gui, int recipient)
 {
     const char *title;
     if (!gui || !gui->columns) return;
-    title = recipient ? T("Empf\344nger", "Recipient")
-                      : T("Absender", "Sender");
+    title = recipient ? T(MSG_RECIPIENT, "Recipient")
+                      : T(MSG_SENDER_F4D4, "Sender");
     SetLBColumnInfoAttrs(gui->columns,
                          LBCIA_Column, 1,
                          LBCIA_Title, (ULONG)(uintptr_t)title,
@@ -431,11 +430,11 @@ size_t update_messages_from_payload(AmgGui *gui,
         date_header = amg_mail_header_get(&headers, "Date");
         header_to_local(
             party_header,
-            recipient ? T("(Unbekannter Empf\344nger)", "(Unknown recipient)")
-                      : T("(Unbekannter Absender)", "(Unknown sender)"),
+            recipient ? T(MSG_UNKNOWN_RECIPIENT, "(Unknown recipient)")
+                      : T(MSG_UNKNOWN_SENDER_CCD6, "(Unknown sender)"),
             party, sizeof(party));
         sender_name_only(party, sizeof(party));
-        header_to_local(subject_header, T("(Kein Betreff)", "(No subject)"),
+        header_to_local(subject_header, T(MSG_NO_SUBJECT, "(No subject)"),
                         subject, sizeof(subject));
         format_mail_date(date_header, date, sizeof(date));
         node = message_node(gui, party, subject, date,
@@ -455,10 +454,8 @@ size_t update_messages_from_payload(AmgGui *gui,
     if (result < 0 && parse_error) *parse_error = result;
     if (!count) {
         const char *message = result < 0
-            ? T("Der Ordner konnte nicht ausgewertet werden.",
-                "The folder could not be parsed.")
-            : T("Dieser Ordner enth\344lt keine Nachrichten.",
-                "This folder contains no messages.");
+            ? T(MSG_THE_FOLDER_COULD_NOT_BE_PARSED, "The folder could not be parsed.")
+            : T(MSG_THIS_FOLDER_CONTAINS_NO_MESSAGES, "This folder contains no messages.");
         struct Node *node = message_placeholder_node(message);
         if (node) AddTail(&gui->messages_list, node);
     }
@@ -549,11 +546,11 @@ size_t merge_new_messages_from_payload(AmgGui *gui,
         subject_header = amg_mail_header_get(&headers, "Subject");
         date_header = amg_mail_header_get(&headers, "Date");
         header_to_local(from_header,
-                        T("(Unbekannter Absender)", "(Unknown sender)"),
+                        T(MSG_UNKNOWN_SENDER_CCD6, "(Unknown sender)"),
                         from, sizeof(from));
         sender_name_only(from, sizeof(from));
         header_to_local(subject_header,
-                        T("(Kein Betreff)", "(No subject)"),
+                        T(MSG_NO_SUBJECT, "(No subject)"),
                         subject, sizeof(subject));
         format_mail_date(date_header, date, sizeof(date));
         node = message_node(gui, from, subject, date,
@@ -571,8 +568,7 @@ size_t merge_new_messages_from_payload(AmgGui *gui,
 
     if (!gui->messages_list.lh_Head->ln_Succ) {
         node = message_placeholder_node(
-            T("Dieser Ordner enth\344lt keine Nachrichten.",
-              "This folder contains no messages."));
+            T(MSG_THIS_FOLDER_CONTAINS_NO_MESSAGES, "This folder contains no messages."));
         if (node) AddTail(&gui->messages_list, node);
     }
 

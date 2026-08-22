@@ -87,7 +87,7 @@ struct GfxBase *GfxBase = NULL;
 #define GUI_RAWKEY_KEYPAD_ENTER 0x43UL
 #define GUI_RAWKEY_RETURN 0x44UL
 #define GUI_RAWKEY_ESCAPE 0x45UL
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 
 
@@ -220,7 +220,7 @@ void set_utf8_string(struct Gadget *gadget, struct Window *window,
         amg_buffer_terminate(&local) == AMG_OK)
         set_string(gadget, window, (const char *)local.data);
     else
-        set_string(gadget, window, T("Fehler", "Error"));
+        set_string(gadget, window, T(MSG_ERROR, "Error"));
     amg_buffer_free(&local);
 }
 
@@ -506,7 +506,7 @@ AmgGui *amg_gui_create(AmgAccount *account, AmgError *error)
         close_classes();
         amg_error_set(
             error, AMG_ERR_UNSUPPORTED,
-            T("Erforderliche ReAction-Klassen fehlen. AmiGmail ben\303\266tigt AmigaOS 3.2.", "Required ReAction classes are missing. AmiGmail requires AmigaOS 3.2."));
+            T(MSG_REQUIRED_REACTION_CLASSES_ARE_MISSING_AMIGMAIL_REQUIRES_AMIGAOS, "Required ReAction classes are missing. AmiGmail requires AmigaOS 3.2."));
         return NULL;
     }
     gui = (AmgGui *)calloc(1, sizeof(*gui));
@@ -586,7 +586,7 @@ AmgGui *amg_gui_create(AmgAccount *account, AmgError *error)
 {
     (void)account;
     amg_error_set(error, AMG_ERR_UNSUPPORTED,
-                  "ReAction ist nur im AmigaOS-Build verf\303\274gbar.");
+                  "ReAction is available only in the AmigaOS build.");
     return NULL;
 }
 
@@ -597,7 +597,7 @@ int amg_gui_run(AmgGui *gui, AmgMailtoServer *mailto_server,
     (void)mailto_server;
     (void)startup_mailto;
     amg_error_set(error, AMG_ERR_UNSUPPORTED,
-                  "ReAction ist nur im AmigaOS-Build verf\303\274gbar.");
+                  "ReAction is available only in the AmigaOS build.");
     return AMG_ERR_UNSUPPORTED;
 }
 

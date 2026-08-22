@@ -1,5 +1,5 @@
 PROJECT := AmiGmail
-VERSION := 1.9
+VERSION := 1.10
 
 ifeq ($(origin CC),default)
 CC := m68k-amigaos-gcc
@@ -117,6 +117,8 @@ dist: release
 	cp bin/$(PROJECT) README.md CHANGELOG.md dist/$(PROJECT)-$(VERSION)/
 
 	cp -R config dist/$(PROJECT)-$(VERSION)/
+
+	cp -R Catalogs dist/$(PROJECT)-$(VERSION)/
 
 	cd dist && tar -czf $(PROJECT)-$(VERSION)-AmigaOS3.tar.gz $(PROJECT)-$(VERSION)
 

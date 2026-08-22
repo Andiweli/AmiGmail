@@ -10,7 +10,7 @@
 #if AMIGMAIL_AMIGA
 #include <proto/intuition.h>
 
-#define T(de, en) amg_tr((de), (en))
+#define T(id, en) amg_tr((id), (en))
 
 static int mailto_utf8_to_local_field(const char *utf8, char *local,
                                       size_t capacity, AmgError *error)
@@ -24,15 +24,13 @@ static int mailto_utf8_to_local_field(const char *utf8, char *local,
         amg_buffer_terminate(&converted) != AMG_OK) {
         amg_buffer_free(&converted);
         amg_error_set(error, AMG_ERR_PARSE,
-                      T("mailto:-Text konnte nicht gelesen werden.",
-                        "mailto: text could not be decoded."));
+                      T(MSG_MAILTO_TEXT_COULD_NOT_BE_DECODED, "mailto: text could not be decoded."));
         return AMG_ERR_PARSE;
     }
     if (converted.length >= capacity) {
         amg_buffer_free(&converted);
         amg_error_set(error, AMG_ERR_LIMIT,
-                      T("Ein Feld des mailto:-Links ist zu lang.",
-                        "A field in the mailto: link is too long."));
+                      T(MSG_A_FIELD_IN_THE_MAILTO_LINK_IS_TOO, "A field in the mailto: link is too long."));
         return AMG_ERR_LIMIT;
     }
     memcpy(local, converted.data, converted.length + 1U);
@@ -49,14 +47,12 @@ int open_mailto_compose(AmgGui *gui, const char *url, AmgError *error)
     if (!gui || !url) return AMG_ERR_ARGUMENT;
     if (gui->iconified && !gui_uniconify(gui)) {
         amg_error_set(error, AMG_ERR_IO,
-                      T("AmiGmail-Fenster konnte nicht wiederhergestellt werden.",
-                        "AmiGmail window could not be restored."));
+                      T(MSG_AMIGMAIL_WINDOW_COULD_NOT_BE_RESTORED, "AmiGmail window could not be restored."));
         return AMG_ERR_IO;
     }
     if (account_is_locked(gui->account)) {
         status_local(gui,
-            T("mailto:-Link wartet auf ein entsperrtes Gmail-Konto.",
-              "mailto: link requires an unlocked Gmail account."));
+            T(MSG_MAILTO_LINK_REQUIRES_AN_UNLOCKED_GMAIL_ACCOUNT, "mailto: link requires an unlocked Gmail account."));
         return AMG_ERR_AUTH;
     }
 
@@ -72,8 +68,7 @@ int open_mailto_compose(AmgGui *gui, const char *url, AmgError *error)
     if (!seed) {
         amg_mailto_request_clear(&request);
         amg_error_set(error, AMG_ERR_MEMORY,
-                      T("Nicht genug Speicher f\303\274r mailto:-Link.",
-                        "Not enough memory for mailto: link."));
+                      T(MSG_NOT_ENOUGH_MEMORY_FOR_MAILTO_LINK, "Not enough memory for mailto: link."));
         status_utf8(gui, error->message);
         return AMG_ERR_MEMORY;
     }
@@ -123,8 +118,7 @@ void handle_mailto_requests(AmgGui *gui, AmgMailtoServer *server,
             (void)open_mailto_compose(gui, url, error);
         else
             status_local(gui,
-                T("mailto:-Link abgebrochen: Gmail-Konto ist gesperrt.",
-                  "mailto: link cancelled: Gmail account is locked."));
+                T(MSG_MAILTO_LINK_CANCELLED_GMAIL_ACCOUNT_IS_LOCKED, "mailto: link cancelled: Gmail account is locked."));
         free(url);
         url = NULL;
     }
